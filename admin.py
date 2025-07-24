@@ -43,6 +43,9 @@ def unassign_phone_number(user_id):
         store.db.message_log.delete_many({'phone_id': ObjectId(phone_id)})
         store.db.contacts.delete_many({'phone_id': ObjectId(phone_id)})
         store.db.forwarding_rules.delete_many({'phone_id': ObjectId(phone_id)})
+        # Add deletion for upcoming_events
+        result = store.db.upcoming_events.delete_many({'phone_id': ObjectId(phone_id)})
+        logger.info(f"Deleted {result.deleted_count} upcoming events for phone_id {phone_id}")
 
         # Cancel and remove scheduled messages
         scheduled_messages = store.db.scheduled_messages.find({'phone_id': ObjectId(phone_id), 'status': 'pending'})
