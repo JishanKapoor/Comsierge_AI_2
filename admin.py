@@ -7,6 +7,7 @@ import logging
 from routes import scheduler
 from datetime import datetime
 import pytz
+from extensions import socketio  # Import socketio if not already imported
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -43,7 +44,7 @@ def unassign_phone_number(user_id):
         store.db.message_log.delete_many({'phone_id': ObjectId(phone_id)})
         store.db.contacts.delete_many({'phone_id': ObjectId(phone_id)})
         store.db.forwarding_rules.delete_many({'phone_id': ObjectId(phone_id)})
-        # Add deletion for upcoming_events
+        # Explicit deletion for upcoming_events (all events, past or future)
         result = store.db.upcoming_events.delete_many({'phone_id': ObjectId(phone_id)})
         logger.info(f"Deleted {result.deleted_count} upcoming events for phone_id {phone_id}")
 
@@ -62,6 +63,9 @@ def unassign_phone_number(user_id):
                 logger.debug(f"Job send_{str(msg['_id'])} already removed")
 
         store.db.scheduled_messages.delete_many({'phone_id': ObjectId(phone_id)})
+
+        # Optional: Emit SocketIO event to clear UI for any connected clients (prevents stale data display)
+        socketio.emit('clear_events', room=f"user_{phone_id}")
 
         flash('Phone number unassigned and associated data deleted successfully.', 'success')
         logger.info(f"Unassigned phone number {phone_doc['number']} from user {user_id}")
