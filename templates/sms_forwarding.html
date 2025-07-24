@@ -1,0 +1,1102 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en" class="scroll-smooth">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
+<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
+<!--    <title>Comsierge | SMS Forwarding</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link rel="preconnect" href="https://fonts.googleapis.com">-->
+<!--    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">-->
+<!--    <style>-->
+<!--        button[type="submit"] {-->
+<!--            background-color: #ffffff;-->
+<!--            color: #000000;-->
+<!--            font-size: 0.75rem;-->
+<!--            padding: 0.5rem 1rem;-->
+<!--            border-radius: 0.375rem;-->
+<!--            font-weight: 600;-->
+<!--            transition: background-color 0.2s ease;-->
+<!--        }-->
+<!--        button[type="submit"]:hover {-->
+<!--            background-color: #e5e5e5;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="antialiased bg-black text-white min-h-screen">-->
+<!--    &lt;!&ndash; Notification Banner &ndash;&gt;-->
+<!--    <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>-->
+
+<!--    &lt;!&ndash; Menu &ndash;&gt;-->
+<!--    {% include 'menu.html' %}-->
+<!--    {% set header_title = 'SMS Forwarding' %}-->
+<!--    {% include 'header.html' %}-->
+
+<!--    &lt;!&ndash; Main Content &ndash;&gt;-->
+<!--    <div class="content-wrapper w-full">-->
+<!--        <main class="px-4 pt-16 pb-12 max-w-full">-->
+<!--            <section id="sms-forwarding" class="py-8 active">-->
+<!--                <h2 class="text-2xl font-bold mb-1">Forward Messages</h2>-->
+<!--                <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>-->
+<!--                <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>-->
+
+<!--                <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">-->
+<!--                    {% with messages = get_flashed_messages(with_categories=true) %}-->
+<!--                        {% if messages %}-->
+<!--                            <div class="mb-6">-->
+<!--                                {% for category, message in messages %}-->
+<!--                                    <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>-->
+<!--                                {% endfor %}-->
+<!--                            </div>-->
+<!--                        {% endif %}-->
+<!--                    {% endwith %}-->
+
+<!--                    &lt;!&ndash; Forwarding Form &ndash;&gt;-->
+<!--                    <form method="POST" action="{{ url_for('add_forwarding_rule_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return validateForm()">-->
+<!--                        <div class="w-full">-->
+<!--                            <label for="from_number" class="block text-xs font-medium text-zinc-400 mb-2">From Number</label>-->
+<!--                            <input type="tel" id="from_number" name="from_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">-->
+<!--                            <select id="from_contact" name="from_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('from_number').value = this.value;">-->
+<!--                                <option value="" disabled selected>Select Contact</option>-->
+<!--                                {% for contact in contacts %}-->
+<!--                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>-->
+<!--                                {% endfor %}-->
+<!--                            </select>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full">-->
+<!--                            <label for="forward_to" class="block text-xs font-medium text-zinc-400 mb-2">Forward To</label>-->
+<!--                            <input type="tel" id="forward_to" name="forward_to" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required>-->
+<!--                            <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('forward_to').value = this.value;">-->
+<!--                                <option value="" disabled selected>Select Contact</option>-->
+<!--                                {% for contact in contacts %}-->
+<!--                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>-->
+<!--                                {% endfor %}-->
+<!--                            </select>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full">-->
+<!--                            <label class="block text-xs font-medium text-zinc-400 mb-2">Priority Mode</label>-->
+<!--                            <div class="flex flex-col gap-2">-->
+<!--                                <label class="flex items-center">-->
+<!--                                    <input type="radio" name="priority_mode" value="high_medium" class="accent-neon-cyan">-->
+<!--                                    <span class="ml-2 text-xs text-white">Send all High & Medium priority messages</span>-->
+<!--                                </label>-->
+<!--                                <label class="flex items-center">-->
+<!--                                    <input type="radio" name="priority_mode" value="high" class="accent-neon-cyan">-->
+<!--                                    <span class="ml-2 text-xs text-white">Send only High priority messages</span>-->
+<!--                                </label>-->
+<!--                                <label class="flex items-center">-->
+<!--                                    <input type="radio" name="priority_mode" value="all" class="accent-neon-cyan" checked>-->
+<!--                                    <span class="ml-2 text-xs text-white">Send all messages</span>-->
+<!--                                </label>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        &lt;!&ndash; New: High Priority Filters (hidden unless 'high' selected) &ndash;&gt;-->
+<!--                        <div class="high-filters w-full hidden">-->
+<!--                            <label class="block text-xs font-medium text-zinc-400 mb-2">High Priority Filters (select all that apply)</label>-->
+<!--                            <div class="flex flex-col gap-2">-->
+<!--                                {% for type in high_types %}-->
+<!--                                    <label class="flex items-center">-->
+<!--                                        <input type="checkbox" name="high_types[]" value="{{ type }}" class="accent-neon-cyan" checked>-->
+<!--                                        <span class="ml-2 text-xs text-white">{{ type | title }}</span>-->
+<!--                                    </label>-->
+<!--                                {% endfor %}-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="flex flex-col sm:flex-row gap-4">-->
+<!--                            <div class="flex-1">-->
+<!--                                <label for="start_date" class="block text-xs font-medium text-zinc-400 mb-2">Start Date (UTC)</label>-->
+<!--                                <input type="date" id="start_date" name="start_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">-->
+<!--                            </div>-->
+<!--                            <div class="flex-1">-->
+<!--                                <label for="start_time" class="block text-xs font-medium text-zinc-400 mb-2">Start Time (UTC)</label>-->
+<!--                                <input type="time" id="start_time" name="start_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">-->
+<!--                            </div>-->
+<!--                            <div class="flex items-end">-->
+<!--                                <label class="inline-flex items-center bg-zinc-800 px-4 py-2 rounded-lg">-->
+<!--                                    <input type="checkbox" id="start_now_check" name="forward_type" value="start_now" class="accent-neon-cyan" onclick="toggleStartFields(this)">-->
+<!--                                    <span class="ml-2 text-xs text-white">Start Now</span>-->
+<!--                                </label>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="flex flex-col sm:flex-row gap-4">-->
+<!--                            <div class="flex-1">-->
+<!--                                <label for="end_date" class="block text-xs font-medium text-zinc-400 mb-2">End Date (UTC)</label>-->
+<!--                                <input type="date" id="end_date" name="end_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">-->
+<!--                            </div>-->
+<!--                            <div class="flex-1">-->
+<!--                                <label for="end_time" class="block text-xs font-medium text-zinc-400 mb-2">End Time (UTC)</label>-->
+<!--                                <input type="time" id="end_time" name="end_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">-->
+<!--                            </div>-->
+<!--                            <div class="flex items-end">-->
+<!--                                <label class="inline-flex items-center bg-zinc-800 px-4 py-2 rounded-lg">-->
+<!--                                    <input type="checkbox" id="forever_check" name="forward_type" value="forever" class="accent-neon-cyan" onchange="toggleEndFields(this)">-->
+<!--                                    <span class="ml-2 text-xs text-white">Stop Never</span>-->
+<!--                                </label>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full text-right">-->
+<!--                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Submit</button>-->
+<!--                        </div>-->
+<!--                    </form>-->
+
+<!--                    &lt;!&ndash; Forward All Messages Form &ndash;&gt;-->
+<!--                    <form method="POST" action="{{ url_for('add_forwarding_rule_route') }}" class="flex flex-col gap-4 mb-8 w-full">-->
+<!--                        <h3 class="text-base font-semibold">Forward All Messages</h3>-->
+<!--                        <input type="hidden" name="forward_type" value="all">-->
+<!--                        <div class="w-full">-->
+<!--                            <label for="forward_to_all" class="block text-xs font-medium text-zinc-400 mb-2">Forward To</label>-->
+<!--                            <input type="tel" id="forward_to_all" name="forward_to" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required>-->
+<!--                            <select id="to_contact_all" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('forward_to_all').value = this.value;">-->
+<!--                                <option value="" disabled selected>Select Contact</option>-->
+<!--                                {% for contact in contacts %}-->
+<!--                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>-->
+<!--                                {% endfor %}-->
+<!--                            </select>-->
+<!--                        </div>-->
+<!--                        <div class="w-full">-->
+<!--                            <label class="block text-xs font-medium text-zinc-400 mb-2">Priority Mode</label>-->
+<!--                            <div class="flex flex-col gap-2">-->
+<!--                                <label class="flex items-center">-->
+<!--                                    <input type="radio" name="priority_mode" value="high_medium" class="accent-neon-cyan">-->
+<!--                                    <span class="ml-2 text-xs text-white">Send all High & Medium priority messages</span>-->
+<!--                                </label>-->
+<!--                                <label class="flex items-center">-->
+<!--                                    <input type="radio" name="priority_mode" value="high" class="accent-neon-cyan">-->
+<!--                                    <span class="ml-2 text-xs text-white">Send only High priority messages</span>-->
+<!--                                </label>-->
+<!--                                <label class="flex items-center">-->
+<!--                                    <input type="radio" name="priority_mode" value="all" class="accent-neon-cyan" checked>-->
+<!--                                    <span class="ml-2 text-xs text-white">Send all messages</span>-->
+<!--                                </label>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        &lt;!&ndash; New: High Priority Filters (hidden unless 'high' selected) &ndash;&gt;-->
+<!--                        <div class="high-filters w-full hidden">-->
+<!--                            <label class="block text-xs font-medium text-zinc-400 mb-2">High Priority Filters (select all that apply)</label>-->
+<!--                            <div class="flex flex-col gap-2">-->
+<!--                                {% for type in high_types %}-->
+<!--                                    <label class="flex items-center">-->
+<!--                                        <input type="checkbox" name="high_types[]" value="{{ type }}" class="accent-neon-cyan" checked>-->
+<!--                                        <span class="ml-2 text-xs text-white">{{ type | title }}</span>-->
+<!--                                    </label>-->
+<!--                                {% endfor %}-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full text-right">-->
+<!--                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Forward All</button>-->
+<!--                        </div>-->
+<!--                    </form>-->
+
+<!--                    &lt;!&ndash; Upcoming Forwarding Rules Table &ndash;&gt;-->
+<!--                    <div class="mt-8">-->
+<!--                        <h3 class="text-base font-semibold mb-4">Upcoming Forwarding Rules</h3>-->
+<!--                        <div class="overflow-x-auto rounded-lg border border-zinc-800">-->
+<!--                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">-->
+<!--                                <thead>-->
+<!--                                    <tr class="border-b border-zinc-800">-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">From</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Priority Mode</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Start Time (UTC)</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">End Time (UTC)</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>-->
+<!--                                    </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody id="upcoming-rules-body">-->
+<!--                                    {% if upcoming_rules %}-->
+<!--                                        {% for rule in upcoming_rules %}-->
+<!--                                            {% if rule.from_number or rule.forward_to != personal_phone %}-->
+<!--                                                <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">-->
+<!--                                                    <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs">-->
+<!--                                                        {% if rule.priority_mode == 'high' and rule.high_filters %}-->
+<!--                                                            High ({{ rule.high_filters | join(', ') | title }})-->
+<!--                                                        {% else %}-->
+<!--                                                            {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}-->
+<!--                                                        {% endif %}-->
+<!--                                                    </td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-status text-yellow-400">{{ rule.status | capitalize }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-actions">-->
+<!--                                                        <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">-->
+<!--                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>-->
+<!--                                                        </form>-->
+<!--                                                    </td>-->
+<!--                                                </tr>-->
+<!--                                            {% endif %}-->
+<!--                                        {% endfor %}-->
+<!--                                    {% else %}-->
+<!--                                        <tr>-->
+<!--                                            <td colspan="7" class="px-4 py-3 text-center text-xs text-zinc-500">No upcoming rules.</td>-->
+<!--                                        </tr>-->
+<!--                                    {% endif %}-->
+<!--                                </tbody>-->
+<!--                            </table>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Active Forwarding Rules Table &ndash;&gt;-->
+<!--                    <div class="mt-8">-->
+<!--                        <h3 class="text-base font-semibold mb-4">Active Forwarding Rules</h3>-->
+<!--                        <div class="overflow-x-auto rounded-lg border border-zinc-800">-->
+<!--                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">-->
+<!--                                <thead>-->
+<!--                                    <tr class="border-b border-zinc-800">-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">From</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Priority Mode</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Start Time (UTC)</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">End Time (UTC)</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>-->
+<!--                                    </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody id="active-rules-body">-->
+<!--                                    {% if active_rules %}-->
+<!--                                        {% for rule in active_rules %}-->
+<!--                                            {% if rule.from_number or rule.forward_to != personal_phone %}-->
+<!--                                                <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">-->
+<!--                                                    <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs">-->
+<!--                                                        {% if rule.priority_mode == 'high' and rule.high_filters %}-->
+<!--                                                            High ({{ rule.high_filters | join(', ') | title }})-->
+<!--                                                        {% else %}-->
+<!--                                                            {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}-->
+<!--                                                        {% endif %}-->
+<!--                                                    </td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-status text-green-400">{{ rule.status | capitalize }}</td>-->
+<!--                                                    <td class="px-4 py-3 text-xs rule-actions">-->
+<!--                                                        <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">-->
+<!--                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>-->
+<!--                                                        </form>-->
+<!--                                                    </td>-->
+<!--                                                </tr>-->
+<!--                                            {% endif %}-->
+<!--                                        {% endfor %}-->
+<!--                                    {% else %}-->
+<!--                                        <tr>-->
+<!--                                            <td colspan="7" class="px-4 py-3 text-center text-xs text-zinc-500">No active rules.</td>-->
+<!--                                        </tr>-->
+<!--                                    {% endif %}-->
+<!--                                </tbody>-->
+<!--                            </table>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </section>-->
+<!--        </main>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; JavaScript &ndash;&gt;-->
+<!--    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>-->
+<!--    <script>-->
+<!--        window.addEventListener('load', () => {-->
+<!--            document.body.classList.add('loaded');-->
+<!--            toggleStartFields(document.getElementById('start_now_check'));-->
+<!--            toggleEndFields(document.getElementById('forever_check'));-->
+<!--            updateUTCTime();-->
+<!--            setupSocketIO();-->
+<!--            prefillFormFromURL();-->
+<!--            // New: Initialize priority mode listeners for both forms-->
+<!--            document.querySelectorAll('input[name="priority_mode"]').forEach(radio => {-->
+<!--                radio.addEventListener('change', () => {-->
+<!--                    const form = radio.closest('form');-->
+<!--                    const highFilters = form.querySelector('.high-filters');-->
+<!--                    if (highFilters) {-->
+<!--                        if (radio.value === 'high' && radio.checked) {-->
+<!--                            highFilters.classList.remove('hidden');-->
+<!--                        } else {-->
+<!--                            highFilters.classList.add('hidden');-->
+<!--                        }-->
+<!--                    }-->
+<!--                });-->
+<!--            });-->
+<!--        });-->
+
+<!--        function toggleStartFields(checkbox) {-->
+<!--            const startDate = document.getElementById('start_date');-->
+<!--            const startTime = document.getElementById('start_time');-->
+<!--            if (checkbox) {-->
+<!--                startDate.disabled = checkbox.checked;-->
+<!--                startTime.disabled = checkbox.checked;-->
+<!--                if (checkbox.checked) {-->
+<!--                    startDate.value = '';-->
+<!--                    startTime.value = '';-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+
+<!--        function toggleEndFields(checkbox) {-->
+<!--            const endDate = document.getElementById('end_date');-->
+<!--            const endTime = document.getElementById('end_time');-->
+<!--            if (checkbox) {-->
+<!--                endDate.disabled = checkbox.checked;-->
+<!--                endTime.disabled = checkbox.checked;-->
+<!--                if (checkbox.checked) {-->
+<!--                    endDate.value = '';-->
+<!--                    endTime.value = '';-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+
+<!--        function validateForm() {-->
+<!--            const startNow = document.getElementById('start_now_check').checked;-->
+<!--            const forever = document.getElementById('forever_check').checked;-->
+<!--            const startDate = document.getElementById('start_date').value;-->
+<!--            const startTime = document.getElementById('start_time').value;-->
+<!--            const endDate = document.getElementById('end_date').value;-->
+<!--            const endTime = document.getElementById('end_time').value;-->
+
+<!--            if (!startNow && (startDate || startTime) && !(startDate && startTime)) {-->
+<!--                alert('Both start date and time must be provided if not starting now.');-->
+<!--                return false;-->
+<!--            }-->
+<!--            if (!forever && (endDate || endTime) && !(endDate && endTime)) {-->
+<!--                alert('Both end date and time must be provided if not forever.');-->
+<!--                return false;-->
+<!--            }-->
+<!--            return true;-->
+<!--        }-->
+
+<!--        function updateUTCTime() {-->
+<!--            const utcTimeElement = document.getElementById('utc-time');-->
+<!--            const now = new Date();-->
+<!--            const utcString = now.toUTCString().replace('GMT', 'UTC');-->
+<!--            utcTimeElement.textContent = utcString;-->
+<!--            setTimeout(updateUTCTime, 1000);-->
+<!--        }-->
+
+<!--        function prefillFormFromURL() {-->
+<!--            const urlParams = new URLSearchParams(window.location.search);-->
+
+<!--            // Get 'from_number' from URL params-->
+<!--            const fromNumber = urlParams.get('from_number');-->
+
+<!--            if (fromNumber) {-->
+<!--                // Clean the phone number to remove any spaces-->
+<!--                const cleanedFromNumber = fromNumber.trim().replace(/\s+/g, '').replace(/^(\+?\s*)/, '+');-->
+
+<!--                // Ensure the phone number starts with a '+' (if not already)-->
+<!--                const formattedFromNumber = cleanedFromNumber.startsWith('+') ? cleanedFromNumber : '+' + cleanedFromNumber;-->
+
+<!--                // Set values for the input fields-->
+<!--                const fromNumberInput = document.getElementById('from_number');-->
+<!--                const fromContactSelect = document.getElementById('from_contact');-->
+<!--                const fromNumberAllInput = document.getElementById('from_number_all');-->
+<!--                const fromContactAllSelect = document.getElementById('from_contact_all');-->
+
+<!--                // Assign the cleaned and formatted number-->
+<!--                fromNumberInput.value = formattedFromNumber;-->
+<!--                fromNumberAllInput.value = formattedFromNumber;-->
+
+<!--                // Match the option in the contact selects-->
+<!--                Array.from(fromContactSelect.options).forEach(option => {-->
+<!--                    if (option.value === formattedFromNumber) {-->
+<!--                        option.selected = true;-->
+<!--                    }-->
+<!--                });-->
+
+<!--                Array.from(fromContactAllSelect.options).forEach(option => {-->
+<!--                    if (option.value === formattedFromNumber) {-->
+<!--                        option.selected = true;-->
+<!--                    }-->
+<!--                });-->
+<!--            }-->
+<!--        }-->
+
+
+<!--        function setupSocketIO() {-->
+<!--            const socket = io();-->
+<!--            const selectedPhoneId = "{{ session.selected_phone_id }}";-->
+
+<!--            if (selectedPhoneId) {-->
+<!--                socket.emit('join_room', `user_${selectedPhoneId}`);-->
+<!--            }-->
+
+<!--            socket.on('rule_status_update', function(data) {-->
+<!--                console.log('Received rule status update:', data);-->
+<!--                const upcomingRow = document.querySelector(`#upcoming-rules-body tr[data-rule-id="${data.rule_id}"]`);-->
+<!--                const activeRow = document.querySelector(`#active-rules-body tr[data-rule-id="${data.rule_id}"]`);-->
+
+<!--                if (data.status === 'active' && data.rule_data) {-->
+<!--                    const newRow = createRuleRow(data.rule_data);-->
+<!--                    if (isUpcoming(data.rule_data)) {-->
+<!--                        addToTable('upcoming-rules-body', newRow);-->
+<!--                    } else {-->
+<!--                        addToTable('active-rules-body', newRow);-->
+<!--                    }-->
+<!--                } else {-->
+<!--                    let row = upcomingRow || activeRow;-->
+<!--                    if (row) {-->
+<!--                        updateRuleRow(row, data);-->
+<!--                        if (data.status === 'stopped' || data.status === 'expired') {-->
+<!--                            if (upcomingRow || activeRow) {-->
+<!--                                row.remove();-->
+<!--                            }-->
+<!--                        } else if (data.status === 'active') {-->
+<!--                            if (upcomingRow) {-->
+<!--                                row.remove();-->
+<!--                                addToTable('active-rules-body', row.cloneNode(true));-->
+<!--                            }-->
+<!--                        }-->
+<!--                    }-->
+<!--                }-->
+
+<!--                ['upcoming-rules-body', 'active-rules-body'].forEach(id => {-->
+<!--                    const tbody = document.getElementById(id);-->
+<!--                    const emptyRow = tbody.querySelector('tr td[colspan="7"]');-->
+<!--                    if (emptyRow && tbody.children.length > 1) {-->
+<!--                        emptyRow.parentNode.remove();-->
+<!--                    }-->
+<!--                });-->
+<!--            });-->
+<!--        }-->
+
+<!--        function createRuleRow(rule) {-->
+<!--            const tr = document.createElement('tr');-->
+<!--            tr.setAttribute('data-rule-id', rule._id);-->
+<!--            let priorityDisplay = (rule.priority_mode || 'all').replace('_', ' ').toUpperCase();-->
+<!--            if (rule.priority_mode === 'high' && rule.high_filters && rule.high_filters.length > 0) {-->
+<!--                priorityDisplay += ` (${rule.high_filters.join(', ').toUpperCase()})`;-->
+<!--            }-->
+<!--            tr.innerHTML = `-->
+<!--                <td class="px-4 py-3 text-xs">${rule.from_number || 'All'}</td>-->
+<!--                <td class="px-4 py-3 text-xs">${rule.forward_to}</td>-->
+<!--                <td class="px-4 py-3 text-xs">${priorityDisplay}</td>-->
+<!--                <td class="px-4 py-3 text-xs rule-start">${formatDate(rule.start_time) || 'Now'}</td>-->
+<!--                <td class="px-4 py-3 text-xs rule-end">${formatDate(rule.end_time) || 'Forever'}</td>-->
+<!--                <td class="px-4 py-3 text-xs rule-status">${rule.status.charAt(0).toUpperCase() + rule.status.slice(1)}</td>-->
+<!--                <td class="px-4 py-3 text-xs rule-actions">-->
+<!--                    ${rule.status === 'active' ? `-->
+<!--                        <form method="POST" action="/stop_forwarding_rule/${rule._id}" onsubmit="return confirm('Stop this forwarding rule?')">-->
+<!--                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>-->
+<!--                        </form>-->
+<!--                    ` : (rule.stopped_at || rule.expired_at ? `Ended at: ${formatDate(rule.stopped_at || rule.expired_at)}` : '-')}-->
+<!--                </td>-->
+<!--            `;-->
+<!--            updateStatusClass(tr.querySelector('.rule-status'), rule.status);-->
+<!--            return tr;-->
+<!--        }-->
+
+<!--        function updateRuleRow(row, data) {-->
+<!--            const statusCell = row.querySelector('.rule-status');-->
+<!--            if (statusCell) {-->
+<!--                statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);-->
+<!--                updateStatusClass(statusCell, data.status);-->
+<!--            }-->
+<!--            const actionsCell = row.querySelector('.rule-actions');-->
+<!--            if (actionsCell) {-->
+<!--                if (data.status !== 'active') {-->
+<!--                    actionsCell.innerHTML = data.stopped_at || data.expired_at ? `Ended at: ${data.stopped_at || data.expired_at}` : '-';-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+
+<!--        function updateStatusClass(cell, status) {-->
+<!--            cell.className = 'px-4 py-3 text-xs rule-status ' +-->
+<!--                (status === 'active' ? 'text-green-400' :-->
+<!--                 status === 'stopped' ? 'text-gray-400' :-->
+<!--                 status === 'expired' ? 'text-red-500' : 'text-yellow-400');-->
+<!--        }-->
+
+<!--        function addToTable(tbodyId, row) {-->
+<!--            const tbody = document.getElementById(tbodyId);-->
+<!--            if (tbody) {-->
+<!--                if (tbody.firstChild) {-->
+<!--                    tbody.insertBefore(row, tbody.firstChild);-->
+<!--                } else {-->
+<!--                    tbody.appendChild(row);-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+
+<!--        function formatDate(dateStr) {-->
+<!--            if (!dateStr) return null;-->
+<!--            const date = new Date(dateStr);-->
+<!--            return date.toLocaleString('en-US', {-->
+<!--                month: 'short',-->
+<!--                day: 'numeric',-->
+<!--                year: 'numeric',-->
+<!--                hour: '2-digit',-->
+<!--                minute: '2-digit'-->
+<!--            });-->
+<!--        }-->
+
+<!--        function isUpcoming(rule) {-->
+<!--            if (!rule.start_time) return false;-->
+<!--            const start = new Date(rule.start_time);-->
+<!--            return start > new Date();-->
+<!--        }-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | SMS Forwarding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        button[type="submit"] {
+            background-color: #ffffff;
+            color: #000000;
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body class="antialiased bg-black text-white min-h-screen">
+    <!-- Notification Banner -->
+    <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>
+
+    <!-- Menu -->
+    {% include 'menu.html' %}
+    {% set header_title = 'SMS Forwarding' %}
+    {% include 'header.html' %}
+
+    <!-- Main Content -->
+    <div class="content-wrapper w-full">
+        <main class="px-4 pt-16 pb-12 max-w-full">
+            <section id="sms-forwarding" class="py-8 active">
+                <h2 class="text-2xl font-bold mb-1">Forward Messages</h2>
+                <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
+
+                <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="mb-6">
+                                {% for category, message in messages %}
+                                    <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Forwarding Form -->
+                    <form method="POST" action="{{ url_for('add_forwarding_rule_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return validateForm()">
+                        <div class="w-full">
+                            <label for="from_number" class="block text-xs font-medium text-zinc-400 mb-2">From Number</label>
+                            <input type="tel" id="from_number" name="from_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">
+                            <select id="from_contact" name="from_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('from_number').value = this.value;">
+                                <option value="" disabled selected>Select Contact</option>
+                                {% for contact in contacts %}
+                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="w-full">
+                            <label for="forward_to" class="block text-xs font-medium text-zinc-400 mb-2">Forward To</label>
+                            <input type="tel" id="forward_to" name="forward_to" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required>
+                            <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('forward_to').value = this.value;">
+                                <option value="" disabled selected>Select Contact</option>
+                                {% for contact in contacts %}
+                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="w-full">
+                            <label class="block text-xs font-medium text-zinc-400 mb-2">Priority Mode</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="priority_mode" value="high_medium" class="accent-neon-cyan">
+                                    <span class="ml-2 text-xs text-white">Send all High & Medium priority messages</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="priority_mode" value="high" class="accent-neon-cyan">
+                                    <span class="ml-2 text-xs text-white">Send only High priority messages</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="priority_mode" value="all" class="accent-neon-cyan" checked>
+                                    <span class="ml-2 text-xs text-white">Send all messages</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- New: High Priority Filters (hidden unless 'high' selected) -->
+                        <div class="high-filters w-full hidden">
+                            <label class="block text-xs font-medium text-zinc-400 mb-2">High Priority Filters (select all that apply)</label>
+                            <div class="flex flex-col gap-2">
+                                {% for type in high_types %}
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="high_types[]" value="{{ type }}" class="accent-neon-cyan" checked>
+                                        <span class="ml-2 text-xs text-white">{{ type | title }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <label for="start_date" class="block text-xs font-medium text-zinc-400 mb-2">Start Date (UTC)</label>
+                                <input type="date" id="start_date" name="start_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">
+                            </div>
+                            <div class="flex-1">
+                                <label for="start_time" class="block text-xs font-medium text-zinc-400 mb-2">Start Time (UTC)</label>
+                                <input type="time" id="start_time" name="start_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">
+                            </div>
+                            <div class="flex items-end">
+                                <label class="inline-flex items-center bg-zinc-800 px-4 py-2 rounded-lg">
+                                    <input type="checkbox" id="start_now_check" name="forward_type" value="start_now" class="accent-neon-cyan" onclick="toggleStartFields(this)">
+                                    <span class="ml-2 text-xs text-white">Start Now</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <label for="end_date" class="block text-xs font-medium text-zinc-400 mb-2">End Date (UTC)</label>
+                                <input type="date" id="end_date" name="end_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">
+                            </div>
+                            <div class="flex-1">
+                                <label for="end_time" class="block text-xs font-medium text-zinc-400 mb-2">End Time (UTC)</label>
+                                <input type="time" id="end_time" name="end_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">
+                            </div>
+                            <div class="flex items-end">
+                                <label class="inline-flex items-center bg-zinc-800 px-4 py-2 rounded-lg">
+                                    <input type="checkbox" id="forever_check" name="forward_type" value="forever" class="accent-neon-cyan" onchange="toggleEndFields(this)">
+                                    <span class="ml-2 text-xs text-white">Stop Never</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="w-full text-right">
+                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Submit</button>
+                        </div>
+                    </form>
+
+                    <!-- Forward All Messages Form -->
+                    <form method="POST" action="{{ url_for('add_forwarding_rule_route') }}" class="flex flex-col gap-4 mb-8 w-full">
+                        <h3 class="text-base font-semibold">Forward All Messages</h3>
+                        <input type="hidden" name="forward_type" value="all">
+                        <div class="w-full">
+                            <label for="forward_to_all" class="block text-xs font-medium text-zinc-400 mb-2">Forward To</label>
+                            <input type="tel" id="forward_to_all" name="forward_to" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required>
+                            <select id="to_contact_all" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('forward_to_all').value = this.value;">
+                                <option value="" disabled selected>Select Contact</option>
+                                {% for contact in contacts %}
+                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="w-full">
+                            <label class="block text-xs font-medium text-zinc-400 mb-2">Priority Mode</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="priority_mode" value="high_medium" class="accent-neon-cyan">
+                                    <span class="ml-2 text-xs text-white">Send all High & Medium priority messages</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="priority_mode" value="high" class="accent-neon-cyan">
+                                    <span class="ml-2 text-xs text-white">Send only High priority messages</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="priority_mode" value="all" class="accent-neon-cyan" checked>
+                                    <span class="ml-2 text-xs text-white">Send all messages</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- New: High Priority Filters (hidden unless 'high' selected) -->
+                        <div class="high-filters w-full hidden">
+                            <label class="block text-xs font-medium text-zinc-400 mb-2">High Priority Filters (select all that apply)</label>
+                            <div class="flex flex-col gap-2">
+                                {% for type in high_types %}
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="high_types[]" value="{{ type }}" class="accent-neon-cyan" checked>
+                                        <span class="ml-2 text-xs text-white">{{ type | title }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="w-full text-right">
+                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Forward All</button>
+                        </div>
+                    </form>
+
+                    <!-- Upcoming Forwarding Rules Table -->
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold mb-4">Upcoming Forwarding Rules</h3>
+                        <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                <thead>
+                                    <tr class="border-b border-zinc-800">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">From</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Priority Mode</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Start Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">End Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="upcoming-rules-body">
+                                    {% if upcoming_rules %}
+                                        {% for rule in upcoming_rules %}
+                                            {% if rule.from_number or rule.forward_to != personal_phone %}
+                                                <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">
+                                                    <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>
+                                                    <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>
+                                                    <td class="px-4 py-3 text-xs">
+                                                        {% if rule.priority_mode == 'high' and rule.high_filters %}
+                                                            High ({{ rule.high_filters | join(', ') | title }})
+                                                        {% else %}
+                                                            {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>
+                                                    <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>
+                                                    <td class="px-4 py-3 text-xs rule-status text-yellow-400">{{ rule.status | capitalize }}</td>
+                                                    <td class="px-4 py-3 text-xs rule-actions">
+                                                        <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">
+                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-3 text-center text-xs text-zinc-500">No upcoming rules.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Active Forwarding Rules Table -->
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold mb-4">Active Forwarding Rules</h3>
+                        <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                <thead>
+                                    <tr class="border-b border-zinc-800">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">From</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Priority Mode</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Start Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">End Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="active-rules-body">
+                                    {% if active_rules %}
+                                        {% for rule in active_rules %}
+                                            {% if rule.from_number or rule.forward_to != personal_phone %}
+                                                <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">
+                                                    <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>
+                                                    <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>
+                                                    <td class="px-4 py-3 text-xs">
+                                                        {% if rule.priority_mode == 'high' and rule.high_filters %}
+                                                            High ({{ rule.high_filters | join(', ') | title }})
+                                                        {% else %}
+                                                            {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>
+                                                    <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>
+                                                    <td class="px-4 py-3 text-xs rule-status text-green-400">{{ rule.status | capitalize }}</td>
+                                                    <td class="px-4 py-3 text-xs rule-actions">
+                                                        <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">
+                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-3 text-center text-xs text-zinc-500">No active rules.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            toggleStartFields(document.getElementById('start_now_check'));
+            toggleEndFields(document.getElementById('forever_check'));
+            updateUTCTime();
+            setupSocketIO();
+            prefillFormFromURL();
+            // New: Initialize priority mode listeners for both forms
+            document.querySelectorAll('input[name="priority_mode"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const form = radio.closest('form');
+                    const highFilters = form.querySelector('.high-filters');
+                    if (highFilters) {
+                        if (radio.value === 'high' && radio.checked) {
+                            highFilters.classList.remove('hidden');
+                        } else {
+                            highFilters.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        function toggleStartFields(checkbox) {
+            const startDate = document.getElementById('start_date');
+            const startTime = document.getElementById('start_time');
+            if (checkbox) {
+                startDate.disabled = checkbox.checked;
+                startTime.disabled = checkbox.checked;
+                if (checkbox.checked) {
+                    startDate.value = '';
+                    startTime.value = '';
+                }
+            }
+        }
+
+        function toggleEndFields(checkbox) {
+            const endDate = document.getElementById('end_date');
+            const endTime = document.getElementById('end_time');
+            if (checkbox) {
+                endDate.disabled = checkbox.checked;
+                endTime.disabled = checkbox.checked;
+                if (checkbox.checked) {
+                    endDate.value = '';
+                    endTime.value = '';
+                }
+            }
+        }
+
+        function validateForm() {
+            const startNow = document.getElementById('start_now_check').checked;
+            const forever = document.getElementById('forever_check').checked;
+            const startDate = document.getElementById('start_date').value;
+            const startTime = document.getElementById('start_time').value;
+            const endDate = document.getElementById('end_date').value;
+            const endTime = document.getElementById('end_time').value;
+
+            if (!startNow && (startDate || startTime) && !(startDate && startTime)) {
+                alert('Both start date and time must be provided if not starting now.');
+                return false;
+            }
+            if (!forever && (endDate || endTime) && !(endDate && endTime)) {
+                alert('Both end date and time must be provided if not forever.');
+                return false;
+            }
+            return true;
+        }
+
+        function updateUTCTime() {
+            const utcTimeElement = document.getElementById('utc-time');
+            const now = new Date();
+            const utcString = now.toUTCString().replace('GMT', 'UTC');
+            utcTimeElement.textContent = utcString;
+            setTimeout(updateUTCTime, 1000);
+        }
+
+        function prefillFormFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Get 'from_number' from URL params
+            const fromNumber = urlParams.get('from_number');
+
+            if (fromNumber) {
+                // Clean the phone number to remove any spaces
+                const cleanedFromNumber = fromNumber.trim().replace(/\s+/g, '').replace(/^(\+?\s*)/, '+');
+
+                // Ensure the phone number starts with a '+' (if not already)
+                const formattedFromNumber = cleanedFromNumber.startsWith('+') ? cleanedFromNumber : '+' + cleanedFromNumber;
+
+                // Set values for the input fields
+                const fromNumberInput = document.getElementById('from_number');
+                const fromContactSelect = document.getElementById('from_contact');
+                const fromNumberAllInput = document.getElementById('from_number_all');
+                const fromContactAllSelect = document.getElementById('from_contact_all');
+
+                // Assign the cleaned and formatted number
+                fromNumberInput.value = formattedFromNumber;
+                fromNumberAllInput.value = formattedFromNumber;
+
+                // Match the option in the contact selects
+                Array.from(fromContactSelect.options).forEach(option => {
+                    if (option.value === formattedFromNumber) {
+                        option.selected = true;
+                    }
+                });
+
+                Array.from(fromContactAllSelect.options).forEach(option => {
+                    if (option.value === formattedFromNumber) {
+                        option.selected = true;
+                    }
+                });
+            }
+        }
+
+        function setupSocketIO() {
+            const socket = io();
+            const selectedPhoneId = "{{ session.selected_phone_id }}";
+
+            if (selectedPhoneId) {
+                socket.emit('join_room', `user_${selectedPhoneId}`);
+            }
+
+            socket.on('rule_status_update', function(data) {
+                console.log('Received rule status update:', data);
+                const upcomingRow = document.querySelector(`#upcoming-rules-body tr[data-rule-id="${data.rule_id}"]`);
+                const activeRow = document.querySelector(`#active-rules-body tr[data-rule-id="${data.rule_id}"]`);
+
+                if (data.status === 'active' && data.rule_data) {
+                    const newRow = createRuleRow(data.rule_data);
+                    if (isUpcoming(data.rule_data)) {
+                        addToTable('upcoming-rules-body', newRow);
+                    } else {
+                        addToTable('active-rules-body', newRow);
+                    }
+                } else {
+                    let row = upcomingRow || activeRow;
+                    if (row) {
+                        updateRuleRow(row, data);
+                        if (data.status === 'stopped' || data.status === 'expired') {
+                            if (upcomingRow || activeRow) {
+                                row.remove();
+                            }
+                        } else if (data.status === 'active') {
+                            if (upcomingRow) {
+                                row.remove();
+                                addToTable('active-rules-body', row.cloneNode(true));
+                            }
+                        }
+                    }
+                }
+
+                ['upcoming-rules-body', 'active-rules-body'].forEach(id => {
+                    const tbody = document.getElementById(id);
+                    const emptyRow = tbody.querySelector('tr td[colspan="7"]');
+                    if (emptyRow && tbody.children.length > 1) {
+                        emptyRow.parentNode.remove();
+                    }
+                });
+            });
+        }
+
+        function createRuleRow(rule) {
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-rule-id', rule._id);
+            let priorityDisplay = (rule.priority_mode || 'all').replace('_', ' ').toUpperCase();
+            if (rule.priority_mode === 'high' && rule.high_filters && rule.high_filters.length > 0) {
+                priorityDisplay += ` (${rule.high_filters.join(', ').toUpperCase()})`;
+            }
+            tr.innerHTML = `
+                <td class="px-4 py-3 text-xs">${rule.from_number || 'All'}</td>
+                <td class="px-4 py-3 text-xs">${rule.forward_to}</td>
+                <td class="px-4 py-3 text-xs">${priorityDisplay}</td>
+                <td class="px-4 py-3 text-xs rule-start">${formatDate(rule.start_time) || 'Now'}</td>
+                <td class="px-4 py-3 text-xs rule-end">${formatDate(rule.end_time) || 'Forever'}</td>
+                <td class="px-4 py-3 text-xs rule-status">${rule.status.charAt(0).toUpperCase() + rule.status.slice(1)}</td>
+                <td class="px-4 py-3 text-xs rule-actions">
+                    ${rule.status === 'active' ? `
+                        <form method="POST" action="/stop_forwarding_rule/${rule._id}" onsubmit="return confirm('Stop this forwarding rule?')">
+                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
+                        </form>
+                    ` : (rule.stopped_at || rule.expired_at ? `Ended at: ${formatDate(rule.stopped_at || rule.expired_at)}` : '-')}
+                </td>
+            `;
+            updateStatusClass(tr.querySelector('.rule-status'), rule.status);
+            return tr;
+        }
+
+        function updateRuleRow(row, data) {
+            const statusCell = row.querySelector('.rule-status');
+            if (statusCell) {
+                statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                updateStatusClass(statusCell, data.status);
+            }
+            const actionsCell = row.querySelector('.rule-actions');
+            if (actionsCell) {
+                if (data.status !== 'active') {
+                    actionsCell.innerHTML = data.stopped_at || data.expired_at ? `Ended at: ${data.stopped_at || data.expired_at}` : '-';
+                }
+            }
+        }
+
+        function updateStatusClass(cell, status) {
+            cell.className = 'px-4 py-3 text-xs rule-status ' +
+                (status === 'active' ? 'text-green-400' :
+                 status === 'stopped' ? 'text-gray-400' :
+                 status === 'expired' ? 'text-red-500' : 'text-yellow-400');
+        }
+
+        function addToTable(tbodyId, row) {
+            const tbody = document.getElementById(tbodyId);
+            if (tbody) {
+                if (tbody.firstChild) {
+                    tbody.insertBefore(row, tbody.firstChild);
+                } else {
+                    tbody.appendChild(row);
+                }
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return null;
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function isUpcoming(rule) {
+            if (!rule.start_time) return false;
+            const start = new Date(rule.start_time);
+            return start > new Date();
+        }
+    </script>
+</body>
+</html>

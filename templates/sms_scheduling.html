@@ -1,0 +1,724 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en" class="scroll-smooth">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
+<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
+<!--    <title>Comsierge | SMS Scheduling</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link rel="preconnect" href="https://fonts.googleapis.com">-->
+<!--    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">-->
+<!--    <style>-->
+<!--        button[type="submit"] {-->
+<!--            background-color: #ffffff;-->
+<!--            color: #000000;-->
+<!--            font-size: 0.75rem;-->
+<!--            padding: 0.5rem 1rem;-->
+<!--            border-radius: 0.375rem;-->
+<!--            font-weight: 600;-->
+<!--            transition: background-color 0.2s ease;-->
+<!--        }-->
+<!--        button[type="submit"]:hover {-->
+<!--            background-color: #e5e5e5;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="antialiased bg-black text-white min-h-screen">-->
+<!--    &lt;!&ndash; Notification Banner &ndash;&gt;-->
+<!--    <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>-->
+
+<!--    &lt;!&ndash; Menu &ndash;&gt;-->
+<!--    {% include 'menu.html' %}-->
+<!--    {% set header_title = 'SMS Scheduling' %}-->
+<!--    {% include 'header.html' %}-->
+
+<!--    &lt;!&ndash; Main Content &ndash;&gt;-->
+<!--    <div class="content-wrapper w-full">-->
+<!--        <main class="px-4 pt-16 pb-12 max-w-full">-->
+<!--            <section id="sms-scheduling" class="py-8 active">-->
+<!--                <h2 class="text-2xl font-bold mb-1">Schedule or Send SMS</h2>-->
+<!--                <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>-->
+<!--                <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>-->
+
+<!--                <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">-->
+<!--                    {% with messages = get_flashed_messages(with_categories=true) %}-->
+<!--                        {% if messages %}-->
+<!--                            <div class="mb-6">-->
+<!--                                {% for category, message in messages %}-->
+<!--                                    <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>-->
+<!--                                {% endfor %}-->
+<!--                            </div>-->
+<!--                        {% endif %}-->
+<!--                    {% endwith %}-->
+
+<!--                    &lt;!&ndash; SMS Form &ndash;&gt;-->
+<!--                    <form method="POST" action="{{ url_for('schedule_message_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return normalizeForm()">-->
+<!--                        <div class="w-full">-->
+<!--                            <label for="to_number" class="block text-xs font-medium text-zinc-400 mb-2">Phone Number</label>-->
+<!--                            <input type="tel" id="to_number" name="to_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required="" oninput="addPlusSign()">-->
+
+<!--                            <script>-->
+<!--                              function addPlusSign() {-->
+<!--                                var input = document.getElementById("to_number");-->
+<!--                                if (input.value && !input.value.startsWith("+")) {-->
+<!--                                  input.value = "+" + input.value.replace(/[^0-9+]/g, ''); // This removes any non-numeric character except the plus sign-->
+<!--                                }-->
+<!--                              }-->
+<!--                            </script>-->
+<!--                                                        <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('to_number').value = this.value.startsWith('+') ? this.value : '+1' + this.value;">-->
+<!--                                <option value="" disabled selected>Select Contact</option>-->
+<!--                                {% for contact in contacts %}-->
+<!--                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>-->
+<!--                                {% endfor %}-->
+<!--                            </select>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full">-->
+<!--                            <label for="message_content" class="block text-xs font-medium text-zinc-400 mb-2">Message Content</label>-->
+<!--                            <textarea id="message_content" name="message_content" maxlength="160" placeholder="Max 160 characters" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required></textarea>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full">-->
+<!--                            <label for="send_type" class="block text-xs font-medium text-zinc-400 mb-2">Send Type</label>-->
+<!--                            <select id="send_type" name="send_type" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="toggleScheduleFields()">-->
+<!--                                <option value="instant">Send Instantly</option>-->
+<!--                                <option value="scheduled">Schedule Message</option>-->
+<!--                            </select>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 hidden" id="schedule_fields">-->
+<!--                            <div>-->
+<!--                                <label for="schedule_date" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Date (UTC)</label>-->
+<!--                                <input type="date" id="schedule_date" name="schedule_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />-->
+<!--                                <p class="text-xs text-zinc-500 mt-1">Enter date in UTC timezone</p>-->
+<!--                            </div>-->
+<!--                            <div>-->
+<!--                                <label for="schedule_time" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Time (UTC)</label>-->
+<!--                                <input type="time" id="schedule_time" name="schedule_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />-->
+<!--                                <p class="text-xs text-zinc-500 mt-1">Enter time in UTC (24-hour format, e.g., 16:15 for 4:15 PM UTC)</p>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="w-full text-right">-->
+<!--                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Send</button>-->
+<!--                        </div>-->
+<!--                    </form>-->
+
+<!--                    &lt;!&ndash; Upcoming Scheduled SMS Table &ndash;&gt;-->
+<!--                    <div class="mt-8">-->
+<!--                        <h3 class="text-base font-semibold mb-4">Upcoming Scheduled SMS</h3>-->
+<!--                        <div class="overflow-x-auto rounded-lg border border-zinc-800">-->
+<!--                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">-->
+<!--                                <thead>-->
+<!--                                    <tr class="border-b border-zinc-800">-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled Time (UTC)</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>-->
+<!--                                    </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody id="pending-messages-body">-->
+<!--                                    {% if pending_messages %}-->
+<!--                                        {% for msg in pending_messages %}-->
+<!--                                            <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">-->
+<!--                                                <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>-->
+<!--                                                <td class="px-4 py-3 text-xs">{{ msg.content }}</td>-->
+<!--                                                <td class="px-4 py-3 text-xs message-timestamp">-->
+<!--                                                    {{ msg.schedule_time.strftime('%b %d, %Y, %I:%M %p') if msg.schedule_time else 'Instant' }}-->
+<!--                                                </td>-->
+<!--                                                <td class="px-4 py-3 text-xs message-status text-yellow-400">-->
+<!--                                                    {{ msg.status | capitalize }}-->
+<!--                                                </td>-->
+<!--                                                <td class="px-4 py-3 text-xs message-actions">-->
+<!--                                                    <form method="POST" action="{{ url_for('cancel_message_route', msg_id=msg._id) }}" onsubmit="return confirm('Cancel this scheduled message?')">-->
+<!--                                                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Cancel</button>-->
+<!--                                                    </form>-->
+<!--                                                </td>-->
+<!--                                            </tr>-->
+<!--                                        {% endfor %}-->
+<!--                                    {% else %}-->
+<!--                                        <tr>-->
+<!--                                            <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No scheduled messages.</td>-->
+<!--                                        </tr>-->
+<!--                                    {% endif %}-->
+<!--                                </tbody>-->
+<!--                            </table>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Past Messages Table &ndash;&gt;-->
+<!--                    <div class="mt-8">-->
+<!--                        <h3 class="text-base font-semibold mb-4">Past Messages (Last 24 Hours)</h3>-->
+<!--                        <div class="overflow-x-auto rounded-lg border border-zinc-800">-->
+<!--                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">-->
+<!--                                <thead>-->
+<!--                                    <tr class="border-b border-zinc-800">-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled/Sent Time (UTC)</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>-->
+<!--                                        <th class="px-4 py-2 text-left text-xs font-semibold">Details</th>-->
+<!--                                    </tr>-->
+<!--                                </thead>-->
+<!--                                <tbody id="past-messages-body">-->
+<!--                                    {% if past_messages %}-->
+<!--                                        {% for msg in past_messages %}-->
+<!--                                            <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">-->
+<!--                                                <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>-->
+<!--                                                <td class="px-4 py-3 text-xs">{{ msg.content }}</td>-->
+<!--                                                <td class="px-4 py-3 text-xs message-timestamp">-->
+<!--                                                    {{ (msg.sent_at or msg.schedule_time or msg.updated_at).strftime('%b %d, %Y, %I:%M %p') }}-->
+<!--                                                </td>-->
+<!--                                                <td class="px-4 py-3 text-xs message-status {{ 'text-green-400' if msg.status == 'sent' else 'text-red-500' if msg.status == 'failed' else 'text-gray-400' }}">-->
+<!--                                                    {{ msg.status | capitalize }}-->
+<!--                                                </td>-->
+<!--                                                <td class="px-4 py-3 text-xs message-actions">-->
+<!--                                                    {% if msg.error %}-->
+<!--                                                        Error: {{ msg.error }}-->
+<!--                                                    {% elif msg.message_id %}-->
+<!--                                                        Message ID: {{ msg.message_id }}-->
+<!--                                                    {% else %}-->
+<!--                                                        - -->
+<!--                                                    {% endif %}-->
+<!--                                                </td>-->
+<!--                                            </tr>-->
+<!--                                        {% endfor %}-->
+<!--                                    {% else %}-->
+<!--                                        <tr>-->
+<!--                                            <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No past messages in the last 24 hours.</td>-->
+<!--                                        </tr>-->
+<!--                                    {% endif %}-->
+<!--                                </tbody>-->
+<!--                            </table>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </section>-->
+<!--        </main>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; JavaScript &ndash;&gt;-->
+<!--    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>-->
+<!--    <script>-->
+<!--        window.addEventListener('load', () => {-->
+<!--            document.body.classList.add('loaded');-->
+<!--            toggleScheduleFields();-->
+<!--            updateUTCTime();-->
+<!--            setupSocketIO();-->
+<!--            prefillFormFromURL();-->
+<!--        });-->
+
+<!--        function normalizePhoneNumber(value) {-->
+<!--            if (!value) return '';-->
+<!--            return value.startsWith('+') ? value : '+1' + value.replace(/^1/, '');-->
+<!--        }-->
+
+<!--        function normalizeForm() {-->
+<!--            const toNumberInput = document.getElementById('to_number');-->
+<!--            toNumberInput.value = normalizePhoneNumber(toNumberInput.value);-->
+<!--            return true;-->
+<!--        }-->
+
+<!--        function toggleScheduleFields() {-->
+<!--            const sendType = document.getElementById('send_type').value;-->
+<!--            const scheduleFields = document.getElementById('schedule_fields');-->
+<!--            const dateInput = document.getElementById('schedule_date');-->
+<!--            const timeInput = document.getElementById('schedule_time');-->
+<!--            if (sendType === 'instant') {-->
+<!--                scheduleFields.classList.add('hidden');-->
+<!--                dateInput.disabled = true;-->
+<!--                timeInput.disabled = true;-->
+<!--                dateInput.value = '';-->
+<!--                timeInput.value = '';-->
+<!--            } else {-->
+<!--                scheduleFields.classList.remove('hidden');-->
+<!--                dateInput.disabled = false;-->
+<!--                timeInput.disabled = false;-->
+<!--            }-->
+<!--        }-->
+
+<!--        function updateUTCTime() {-->
+<!--            const utcTimeElement = document.getElementById('utc-time');-->
+<!--            const now = new Date();-->
+<!--            const utcString = now.toUTCString().replace('GMT', 'UTC');-->
+<!--            utcTimeElement.textContent = utcString;-->
+<!--            setTimeout(updateUTCTime, 1000);-->
+<!--        }-->
+
+<!--        function prefillFormFromURL() {-->
+<!--            const urlParams = new URLSearchParams(window.location.search);-->
+<!--            const toNumber = urlParams.get('to_number');-->
+
+<!--            if (toNumber) {-->
+<!--                // Remove unwanted spaces and ensure it's clean-->
+<!--                const cleanedNumber = toNumber.trim().replace(/\s+/g, '').replace(/^(\+?\s*)/, '+');-->
+
+<!--                // Ensure the phone number starts with a '+' (if not already)-->
+<!--                const formattedNumber = cleanedNumber.startsWith('+') ? cleanedNumber : '+' + cleanedNumber;-->
+
+<!--                const toNumberInput = document.getElementById('to_number');-->
+<!--                const toContactSelect = document.getElementById('to_contact');-->
+
+<!--                // Set the input field with the formatted number-->
+<!--                toNumberInput.value = formattedNumber;-->
+
+<!--                // Check if the select option matches and select it-->
+<!--                Array.from(toContactSelect.options).forEach(option => {-->
+<!--                    if (option.value === formattedNumber) {-->
+<!--                        option.selected = true;-->
+<!--                    }-->
+<!--                });-->
+<!--            }-->
+<!--        }-->
+
+
+<!--        function setupSocketIO() {-->
+<!--            const socket = io();-->
+<!--            const selectedPhoneId = "{{ session.selected_phone_id }}";-->
+
+<!--            if (selectedPhoneId) {-->
+<!--                socket.emit('join_room', `user_${selectedPhoneId}`);-->
+<!--            }-->
+
+<!--            socket.on('message_status_update', function(data) {-->
+<!--                console.log('Received status update:', data);-->
+<!--                const pendingRow = document.querySelector(`#pending-messages-body tr[data-message-id="${data.message_id}"]`);-->
+<!--                const pastRow = document.querySelector(`#past-messages-body tr[data-message-id="${data.message_id}"]`);-->
+
+<!--                if (pendingRow) {-->
+<!--                    const statusCell = pendingRow.querySelector('.message-status');-->
+<!--                    if (statusCell) {-->
+<!--                        statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);-->
+<!--                        statusCell.className = 'px-4 py-3 text-xs message-status ' +-->
+<!--                            (data.status === 'sent' ? 'text-green-400' :-->
+<!--                             data.status === 'failed' ? 'text-red-500' :-->
+<!--                             data.status === 'cancelled' ? 'text-gray-400' : 'text-yellow-400');-->
+<!--                    }-->
+
+<!--                    const timestampCell = pendingRow.querySelector('.message-timestamp');-->
+<!--                    if (timestampCell && data.sent_at) {-->
+<!--                        const sentDate = new Date(data.sent_at);-->
+<!--                        timestampCell.textContent = sentDate.toLocaleString('en-US', {-->
+<!--                            month: 'short',-->
+<!--                            day: 'numeric',-->
+<!--                            year: 'numeric',-->
+<!--                            hour: '2-digit',-->
+<!--                            minute: '2-digit'-->
+<!--                        });-->
+<!--                    }-->
+
+<!--                    const actionCell = pendingRow.querySelector('.message-actions');-->
+<!--                    if (actionCell && data.status !== 'pending') {-->
+<!--                        actionCell.innerHTML = data.status === 'sent' ?-->
+<!--                            'Message ID: ' + (data.message_id || 'N/A') :-->
+<!--                            data.error ? 'Error: ' + data.error : '';-->
+<!--                    }-->
+
+<!--                    if (data.status !== 'pending') {-->
+<!--                        const pastMessagesBody = document.getElementById('past-messages-body');-->
+<!--                        if (pastMessagesBody) {-->
+<!--                            const newRow = pendingRow.cloneNode(true);-->
+<!--                            pendingRow.remove();-->
+<!--                            if (pastMessagesBody.firstChild) {-->
+<!--                                pastMessagesBody.insertBefore(newRow, pastMessagesBody.firstChild);-->
+<!--                            } else {-->
+<!--                                pastMessagesBody.appendChild(newRow);-->
+<!--                            }-->
+<!--                            const emptyRow = pastMessagesBody.querySelector('tr td[colspan="5"]');-->
+<!--                            if (emptyRow && pastMessagesBody.children.length > 1) {-->
+<!--                                emptyRow.parentNode.remove();-->
+<!--                            }-->
+<!--                        }-->
+<!--                    }-->
+<!--                } else if (pastRow) {-->
+<!--                    const statusCell = pastRow.querySelector('.message-status');-->
+<!--                    if (statusCell) {-->
+<!--                        statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);-->
+<!--                        statusCell.className = 'px-4 py-3 text-xs message-status ' +-->
+<!--                            (data.status === 'sent' ? 'text-green-400' :-->
+<!--                             data.status === 'failed' ? 'text-red-500' :-->
+<!--                             'text-gray-400');-->
+<!--                    }-->
+
+<!--                    const actionCell = pastRow.querySelector('.message-actions');-->
+<!--                    if (actionCell) {-->
+<!--                        actionCell.innerHTML = data.status === 'sent' ?-->
+<!--                            'Message ID: ' + (data.message_id || 'N/A') :-->
+<!--                            data.error ? 'Error: ' + data.error : '';-->
+<!--                    }-->
+<!--                }-->
+<!--            });-->
+<!--        }-->
+
+<!--        document.getElementById('send_type').addEventListener('change', toggleScheduleFields);-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | SMS Scheduling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        button[type="submit"] {
+            background-color: #ffffff;
+            color: #000000;
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body class="antialiased bg-black text-white min-h-screen">
+    <!-- Notification Banner -->
+    <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>
+
+    <!-- Menu -->
+    {% include 'menu.html' %}
+    {% set header_title = 'SMS Scheduling' %}
+    {% include 'header.html' %}
+
+    <!-- Main Content -->
+    <div class="content-wrapper w-full">
+        <main class="px-4 pt-16 pb-12 max-w-full">
+            <section id="sms-scheduling" class="py-8 active">
+                <h2 class="text-2xl font-bold mb-1">Schedule or Send SMS</h2>
+                <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
+
+                <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="mb-6">
+                                {% for category, message in messages %}
+                                    <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- SMS Form -->
+                    <form method="POST" action="{{ url_for('schedule_message_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return normalizeForm()">
+                        <div class="w-full">
+                            <label for="to_number" class="block text-xs font-medium text-zinc-400 mb-2">Phone Number</label>
+                            <input type="tel" id="to_number" name="to_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required="" oninput="addPlusSign()">
+
+                            <script>
+                              function addPlusSign() {
+                                var input = document.getElementById("to_number");
+                                if (input.value && !input.value.startsWith("+")) {
+                                  input.value = "+" + input.value.replace(/[^0-9+]/g, ''); // This removes any non-numeric character except the plus sign
+                                }
+                              }
+                            </script>
+                            <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('to_number').value = this.value.startsWith('+') ? this.value : '+1' + this.value;">
+                                <option value="" disabled selected>Select Contact</option>
+                                {% for contact in contacts %}
+                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="w-full">
+                            <label for="message_content" class="block text-xs font-medium text-zinc-400 mb-2">Message Content</label>
+                            <textarea id="message_content" name="message_content" maxlength="160" placeholder="Max 160 characters" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required></textarea>
+                        </div>
+
+                        <div class="w-full">
+                            <label for="send_type" class="block text-xs font-medium text-zinc-400 mb-2">Send Type</label>
+                            <select id="send_type" name="send_type" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="toggleScheduleFields()">
+                                <option value="instant">Send Instantly</option>
+                                <option value="scheduled">Schedule Message</option>
+                            </select>
+                        </div>
+
+                        <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 hidden" id="schedule_fields">
+                            <div>
+                                <label for="schedule_date" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Date (UTC)</label>
+                                <input type="date" id="schedule_date" name="schedule_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
+                                <p class="text-xs text-zinc-500 mt-1">Enter date in UTC timezone</p>
+                            </div>
+                            <div>
+                                <label for="schedule_time" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Time (UTC)</label>
+                                <input type="time" id="schedule_time" name="schedule_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
+                                <p class="text-xs text-zinc-500 mt-1">Enter time in UTC (24-hour format, e.g., 16:15 for 4:15 PM UTC)</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full text-right">
+                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Send</button>
+                        </div>
+                    </form>
+
+                    <!-- Upcoming Scheduled SMS Table -->
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold mb-4">Upcoming Scheduled SMS</h3>
+                        <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                <thead>
+                                    <tr class="border-b border-zinc-800">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-messages-body">
+                                    {% if pending_messages %}
+                                        {% for msg in pending_messages %}
+                                            <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
+                                                <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
+                                                <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
+                                                <td class="px-4 py-3 text-xs message-timestamp">
+                                                    {{ msg.schedule_time.strftime('%b %d, %Y, %I:%M %p') if msg.schedule_time else 'Instant' }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-status text-yellow-400">
+                                                    {{ msg.status | capitalize }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-actions">
+                                                    <form method="POST" action="{{ url_for('cancel_message_route', msg_id=msg._id) }}" onsubmit="return confirm('Cancel this scheduled message?')">
+                                                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Cancel</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No scheduled messages.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Past Messages Table -->
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold mb-4">Past Messages (Last 24 Hours)</h3>
+                        <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                <thead>
+                                    <tr class="border-b border-zinc-800">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled/Sent Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="past-messages-body">
+                                    {% if past_messages %}
+                                        {% for msg in past_messages %}
+                                            <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
+                                                <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
+                                                <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
+                                                <td class="px-4 py-3 text-xs message-timestamp">
+                                                    {{ (msg.sent_at or msg.schedule_time or msg.updated_at).strftime('%b %d, %Y, %I:%M %p') }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-status {{ 'text-green-400' if msg.status == 'sent' else 'text-red-500' if msg.status == 'failed' else 'text-gray-400' }}">
+                                                    {{ msg.status | capitalize }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-actions">
+                                                    {% if msg.error %}
+                                                        Error: {{ msg.error }}
+                                                    {% elif msg.message_id %}
+                                                        Message ID: {{ msg.message_id }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No past messages in the last 24 hours.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            toggleScheduleFields();
+            updateUTCTime();
+            setupSocketIO();
+            prefillFormFromURL();
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        function normalizePhoneNumber(value) {
+            if (!value) return '';
+            return value.startsWith('+') ? value : '+1' + value.replace(/^1/, '');
+        }
+
+        function normalizeForm() {
+            const toNumberInput = document.getElementById('to_number');
+            toNumberInput.value = normalizePhoneNumber(toNumberInput.value);
+            return true;
+        }
+
+        function toggleScheduleFields() {
+            const sendType = document.getElementById('send_type').value;
+            const scheduleFields = document.getElementById('schedule_fields');
+            const dateInput = document.getElementById('schedule_date');
+            const timeInput = document.getElementById('schedule_time');
+            if (sendType === 'instant') {
+                scheduleFields.classList.add('hidden');
+                dateInput.disabled = true;
+                timeInput.disabled = true;
+                dateInput.value = '';
+                timeInput.value = '';
+            } else {
+                scheduleFields.classList.remove('hidden');
+                dateInput.disabled = false;
+                timeInput.disabled = false;
+            }
+        }
+
+        function updateUTCTime() {
+            const utcTimeElement = document.getElementById('utc-time');
+            const now = new Date();
+            const utcString = now.toUTCString().replace('GMT', 'UTC');
+            utcTimeElement.textContent = utcString;
+            setTimeout(updateUTCTime, 1000);
+        }
+
+        function prefillFormFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const toNumber = urlParams.get('to_number');
+
+            if (toNumber) {
+                // Remove unwanted spaces and ensure it's clean
+                const cleanedNumber = toNumber.trim().replace(/\s+/g, '').replace(/^(\+?\s*)/, '+');
+
+                // Ensure the phone number starts with a '+' (if not already)
+                const formattedNumber = cleanedNumber.startsWith('+') ? cleanedNumber : '+' + cleanedNumber;
+
+                const toNumberInput = document.getElementById('to_number');
+                const toContactSelect = document.getElementById('to_contact');
+
+                // Set the input field with the formatted number
+                toNumberInput.value = formattedNumber;
+
+                // Check if the select option matches and select it
+                Array.from(toContactSelect.options).forEach(option => {
+                    if (option.value === formattedNumber) {
+                        option.selected = true;
+                    }
+                });
+            }
+        }
+
+        function setupSocketIO() {
+            const socket = io();
+            const selectedPhoneId = "{{ session.selected_phone_id }}";
+
+            if (selectedPhoneId) {
+                socket.emit('join_room', `user_${selectedPhoneId}`);
+            }
+
+            socket.on('message_status_update', function(data) {
+                console.log('Received status update:', data);
+                const pendingRow = document.querySelector(`#pending-messages-body tr[data-message-id="${data.message_id}"]`);
+                const pastRow = document.querySelector(`#past-messages-body tr[data-message-id="${data.message_id}"]`);
+
+                if (pendingRow) {
+                    const statusCell = pendingRow.querySelector('.message-status');
+                    if (statusCell) {
+                        statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                        statusCell.className = 'px-4 py-3 text-xs message-status ' +
+                            (data.status === 'sent' ? 'text-green-400' :
+                             data.status === 'failed' ? 'text-red-500' :
+                             data.status === 'cancelled' ? 'text-gray-400' : 'text-yellow-400');
+                    }
+
+                    const timestampCell = pendingRow.querySelector('.message-timestamp');
+                    if (timestampCell && data.sent_at) {
+                        const sentDate = new Date(data.sent_at);
+                        timestampCell.textContent = sentDate.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+
+                    const actionCell = pendingRow.querySelector('.message-actions');
+                    if (actionCell && data.status !== 'pending') {
+                        actionCell.innerHTML = data.status === 'sent' ?
+                            'Message ID: ' + (data.message_id || 'N/A') :
+                            data.error ? 'Error: ' + data.error : '';
+                    }
+
+                    if (data.status !== 'pending') {
+                        const pastMessagesBody = document.getElementById('past-messages-body');
+                        if (pastMessagesBody) {
+                            const newRow = pendingRow.cloneNode(true);
+                            pendingRow.remove();
+                            if (pastMessagesBody.firstChild) {
+                                pastMessagesBody.insertBefore(newRow, pastMessagesBody.firstChild);
+                            } else {
+                                pastMessagesBody.appendChild(newRow);
+                            }
+                            const emptyRow = pastMessagesBody.querySelector('tr td[colspan="5"]');
+                            if (emptyRow && pastMessagesBody.children.length > 1) {
+                                emptyRow.parentNode.remove();
+                            }
+                        }
+                    }
+                } else if (pastRow) {
+                    const statusCell = pastRow.querySelector('.message-status');
+                    if (statusCell) {
+                        statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                        statusCell.className = 'px-4 py-3 text-xs message-status ' +
+                            (data.status === 'sent' ? 'text-green-400' :
+                             data.status === 'failed' ? 'text-red-500' :
+                             'text-gray-400');
+                    }
+
+                    const actionCell = pastRow.querySelector('.message-actions');
+                    if (actionCell) {
+                        actionCell.innerHTML = data.status === 'sent' ?
+                            'Message ID: ' + (data.message_id || 'N/A') :
+                            data.error ? 'Error: ' + data.error : '';
+                    }
+                }
+            });
+        }
+
+        document.getElementById('send_type').addEventListener('change', toggleScheduleFields);
+    </script>
+</body>
+</html>

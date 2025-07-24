@@ -1,0 +1,14 @@
+Flask==3.0.3
+Flask-Bcrypt==1.0.1
+Flask-SocketIO==5.5.1
+pymongo==4.13.2
+twilio==9.6.5
+openai==1.97.1
+pytz==2025.2
+python-dotenv==1.1.0
+deep-translator==1.11.4
+langdetect==1.0.9
+APScheduler==3.11.0
+gunicorn==22.0.0
+eventlet==0.36.1
+certifi==2024.8.30

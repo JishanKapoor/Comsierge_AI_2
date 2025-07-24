@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | Investor Pitch Deck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00FFFF;
+            --neon-magenta: #FF00FF;
+            --background-dark: #0A0A0A;
+            --card-dark: rgba(24, 24, 27, 0.6);
+            --border-color: #27272A;
+            --text-primary: #EAEAEA;
+            --text-secondary: #A1A1AA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-glow {
+            background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 255, 255, 0.1), transparent);
+        }
+        .section-glow {
+            background-image: radial-gradient(circle 500px at 50% 100%, rgba(255, 0, 255, 0.08), transparent);
+        }
+        .header-glow {
+            box-shadow: 0 1px 0 rgba(0, 255, 255, 0.15);
+        }
+
+        .card {
+            background-color: var(--card-dark);
+            border: 1px solid var(--border-color);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            will-change: border-color, box-shadow, transform;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+        }
+
+        .animated-gradient-border {
+            position: relative;
+            background-clip: padding-box;
+            border: 1px solid transparent;
+            border-radius: inherit;
+        }
+        .animated-gradient-border::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -1px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-cyan));
+            background-size: 200% 100%;
+            animation: gradient-scroll 4s linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes gradient-scroll {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), 0 0 10px rgba(255, 0, 255, 0.1); }
+            50% { box-shadow: 0 0 35px rgba(0, 255, 255, 0.4), 0 0 15px rgba(255, 0, 255, 0.2); }
+        }
+
+        .pulse-animation {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition-delay: var(--delay, 0s);
+        }
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .text-neon-cyan { color: var(--neon-cyan); }
+        .bg-neon-cyan { background-color: var(--neon-cyan); }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .particle {
+            fill: rgba(0, 255, 255, 0.08);
+            animation: float 12s ease-in-out infinite;
+        }
+        .particle-magenta {
+            fill: rgba(255, 0, 255, 0.08);
+            animation-duration: 15s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+            50% { transform: translateY(-30px) translateX(15px) rotate(180deg); }
+        }
+
+        .stat-card {
+            background: rgba(39, 39, 42, 0.5);
+            border: 1px solid #3f3f46;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding-left: 1rem; padding-right: 1rem; }
+            h1 { font-size: 2.5rem; line-height: 2.75rem; }
+            h2 { font-size: 2rem; line-height: 2.25rem; }
+            .py-24 { padding-top: 4rem; padding-bottom: 4rem; }
+            .particles { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Particle Background -->
+    <svg class="particles" aria-hidden="true">
+        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;" />
+        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;" />
+        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;" />
+        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;" />
+        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;" />
+        <circle cx="50%" cy="50%" r="6" class="particle" style="animation-delay: 7.5s;" />
+        <rect x="90%" y="85%" width="3" height="3" class="particle particle-magenta" style="animation-delay: 9s;" />
+    </svg>
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-md header-glow">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="text-lg font-bold text-white">Comsierge</a>
+
+            <!-- Desktop Navigation & CTA -->
+            <div class="hidden md:flex items-center space-x-6">
+                <nav class="flex items-center space-x-6">
+                    <a href="#problem" class="text-sm text-zinc-400 hover:text-white transition-colors">Problem</a>
+                    <a href="#features" class="text-sm text-zinc-400 hover:text-white transition-colors">Features</a>
+                    <a href="#competitors" class="text-sm text-zinc-400 hover:text-white transition-colors">Edge</a>
+                    <a href="#financials" class="text-sm text-zinc-400 hover:text-white transition-colors">Financials</a>
+                    <a href="#ask" class="text-sm text-zinc-400 hover:text-white transition-colors">Ask</a>
+                    <a href="#team" class="text-sm text-zinc-400 hover:text-white transition-colors">Team</a>
+                </nav>
+                <a href="/signup" class="bg-white text-black font-semibold px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 transition-colors duration-200">Try Now</a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden">
+                 <button id="mobile-menu-button" class="p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 focus:outline-none">
+                    <span class="sr-only">Open main menu</span>
+                    <svg id="menu-open-icon" class="h-6 w-6 block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                    <svg id="menu-close-icon" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#problem" class="text-zinc-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Problem</a>
+                <a href="#features" class="text-zinc-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Features</a>
+                <a href="#competitors" class="text-zinc-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Edge</a>
+                <a href="#financials" class="text-zinc-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Financials</a>
+                <a href="#ask" class="text-zinc-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Ask</a>
+                <a href="#team" class="text-zinc-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Team</a>
+                <a href="/signup" class="text-white bg-cyan-600 hover:bg-cyan-700 block px-3 py-2 rounded-md text-base font-medium mt-2 text-center">Try Now</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pt-24">
+
+        <!-- 01: Hero Section -->
+        <section id="home" class="text-center py-24 hero-glow">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 animate-on-scroll">
+                An AI-Powered Phone Number
+            </h1>
+            <p class="max-w-3xl mx-auto text-base md:text-lg text-zinc-400 mb-8 animate-on-scroll" style="--delay: 0.1s;">
+                Your Smart Chief of Staff for Calls and Messages.
+            </p>
+            <div class="inline-block p-1 animated-gradient-border rounded-xl mb-8 animate-on-scroll pulse-animation" style="--delay: 0.2s;">
+                <div class="bg-[#18181B] px-6 py-4 rounded-lg">
+                    <p class="text-lg md:text-xl font-bold text-white">Seeking <span class="text-neon-cyan">$250,000</span> Seed Funding at <span class="text-neon-cyan">$1.25M</span> Valuation</p>
+                </div>
+            </div>
+            <p class="text-sm text-zinc-500 animate-on-scroll" style="--delay: 0.3s;">Jishan Kapoor, Founder | University of Toronto, JP Morgan Chase Intern</p>
+        </section>
+
+        <!-- 02: Why Comsierge Matters -->
+        <section id="problem" class="py-24">
+            <div class="text-center max-w-3xl mx-auto animate-on-scroll">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Why Comsierge Matters</h2>
+                <p class="text-base md:text-lg text-zinc-400">We’re redefining the phone as an intelligent, user-controlled gateway to conquer communication overload.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16 max-w-5xl mx-auto">
+                <div class="flex items-start space-x-6 animate-on-scroll" style="--delay: 0.1s;">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                         <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-white">The Universal Pain</h3>
+                        <p class="text-zinc-400">Your phone is a firehose of notifications. Spam, marketing texts, and low-priority calls bury messages that matter, causing constant distraction and missed opportunities.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-6 animate-on-scroll" style="--delay: 0.2s;">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-white">The Intelligent Answer</h3>
+                        <p class="text-zinc-400">Comsierge is your AI chief of staff, providing a smart phone number that filters, summarizes, & responds. It gives you back control, ensuring you only engage with what truly matters.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03: Prototype In Action -->
+        <section id="features" class="py-24 section-glow">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 animate-on-scroll">See The Prototype In Action</h2>
+                <p class="text-lg text-zinc-400 max-w-3xl mx-auto mb-20 animate-on-scroll" style="--delay: 0.1s;">Our fully functional prototype is already delivering powerful results for 100+ beta testers. Here's what it can do right now:</p>
+            </div>
+            <div class="max-w-5xl mx-auto space-y-16">
+                <!-- Feature 1 -->
+                <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12 animate-on-scroll" style="--delay: 0.2s;">
+                    <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Translate & Communicate Seamlessly</h3>
+                        <p class="text-zinc-400">Converse globally with real-time translation. If you receive a message in Italian, Comsierge translates it to English. When you reply in English, your contact receives it in Italian. It's that simple.</p>
+                    </div>
+                </div>
+                <!-- Feature 2: Automate Your Workflow -->
+                <div class="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12 animate-on-scroll" style="--delay: 0.2s;">
+                    <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.562L16.25 22.5l-.648-1.938a3.375 3.375 0 00-2.672-2.672L11.25 18l1.938-.648a3.375 3.375 0 002.672-2.672L16.25 13l.648 1.938a3.375 3.375 0 002.672 2.672L21.75 18l-1.938.648a3.375 3.375 0 00-2.672 2.672z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Automate Your Workflow</h3>
+                        <p class="text-zinc-400">Set powerful rules to manage your life. Automatically forward all messages containing "emergency" to your Dad's number. Route all bank alerts to your accountant. Comsierge handles the logistics so you can focus.</p>
+                    </div>
+                </div>
+                <!-- Feature 3: Master Your Schedule -->
+                <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12 animate-on-scroll" style="--delay: 0.2s;">
+                    <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Master Your Schedule</h3>
+                        <p class="text-zinc-400">Never miss a beat. Comsierge intelligently groups meeting requests and confirmations into single events. You can also schedule messages to remind colleagues of important tasks, ensuring nothing falls through the cracks.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04: The Future is Autonomous -->
+        <section class="py-24">
+            <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-12 animate-on-scroll">The Future: A Truly Autonomous Phone</h2>
+            <div class="max-w-4xl mx-auto space-y-10">
+                <div class="flex items-start space-x-6 animate-on-scroll" style="--delay: 0.1s;">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                        <svg class="w-6 h-6 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">True Cellular Integration (The Holy Grail)</h4>
+                        <p class="text-zinc-400">The first AI number that lives on your phone's cellular plan—no Wi-Fi or app needed. This is our core innovation, putting us years ahead of any competitor.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-6 animate-on-scroll" style="--delay: 0.2s;">
+                     <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                        <svg class="w-6 h-6 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">Proactive AI Calling</h4>
+                        <p class="text-zinc-400">Your AI will make calls on your behalf—booking reservations, confirming appointments, and getting information, all with a natural, human-like voice.</p>
+                    </div>
+                </div>
+                 <div class="flex items-start space-x-6 animate-on-scroll" style="--delay: 0.3s;">
+                     <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                        <svg class="w-6 h-6 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">Predictive Intelligence & Deep Sentiment Analysis</h4>
+                        <p class="text-zinc-400">Comsierge will anticipate your needs, suggest follow-ups, and understand the emotional context of calls and texts to perfectly prioritize and respond.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 05: Competitive Edge -->
+        <section id="competitors" class="py-24 section-glow">
+            <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-16 animate-on-scroll">A Class Apart from the Competition</h2>
+            <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                <div class="flex items-start space-x-4 animate-on-scroll" style="--delay: 0.1s;">
+                    <span class="text-2xl font-bold gradient-text">01</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">vs. Telecom Giants (AT&T, Verizon)</h4>
+                        <p class="text-zinc-400">Their call screening is basic and reactive. We offer proactive, AI-driven conversation management and cross-platform integration they can't match.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 animate-on-scroll" style="--delay: 0.2s;">
+                    <span class="text-2xl font-bold gradient-text">02</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">vs. Spam Blockers (Truecaller)</h4>
+                        <p class="text-zinc-400">They just block calls. We manage the entire conversation with context-aware summaries, scheduling, and auto-responses.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 animate-on-scroll" style="--delay: 0.3s;">
+                    <span class="text-2xl font-bold gradient-text">03</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">vs. Enterprise Platforms (RingCentral)</h4>
+                        <p class="text-zinc-400">Their systems are bloated and built for large teams. We are intuitive, personal, and designed for the individual professional.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 animate-on-scroll" style="--delay: 0.4s;">
+                    <span class="text-2xl font-bold gradient-text">04</span>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">vs. Voice Assistants (Siri, Google)</h4>
+                        <p class="text-zinc-400">They are locked into their ecosystems and have limited capabilities. We are platform-agnostic, working across email, WhatsApp, and Telegram with full user control.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-16 animate-on-scroll" style="--delay: 0.5s;">
+                <p class="text-lg text-neon-cyan font-semibold max-w-2xl mx-auto">Our Moat: A patent-pending AI engine and predictive logic designed to outpace them all.</p>
+            </div>
+        </section>
+
+        <!-- 06: Financials & Business Model -->
+        <section id="financials" class="py-24">
+             <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-12 animate-on-scroll">Path to Profitability</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
+                <div class="lg:col-span-2 animate-on-scroll" style="--delay: 0.1s;">
+                    <h3 class="text-2xl font-bold text-white mb-4">Business Model</h3>
+                    <div class="space-y-6">
+                        <div class="card p-5 rounded-xl">
+                            <h4 class="font-bold text-neon-cyan">Freemium Model</h4>
+                            <p class="text-zinc-300 text-sm mt-1">Free AI phone number to drive mass adoption and viral growth.</p>
+                        </div>
+                        <div class="card p-5 rounded-xl">
+                            <h4 class="font-bold text-neon-cyan">Premium Tier: $12/mo</h4>
+                            <p class="text-zinc-300 text-sm mt-1">Unlimited rules, advanced AI features, and priority integrations.</p>
+                        </div>
+                        <div class="card p-5 rounded-xl">
+                            <h4 class="font-bold text-neon-cyan">Enterprise Upsell</h4>
+                            <p class="text-zinc-300 text-sm mt-1">Custom team features and analytics for businesses by Year 2.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-3 card p-4 sm:p-6 rounded-xl animate-on-scroll table-container" style="--delay: 0.2s;">
+                    <h3 class="text-2xl font-bold text-white mb-4 px-2">Financial Projections</h3>
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Users</th>
+                                <th>Revenue (ARR)</th>
+                                <th>Net Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-zinc-300">
+                            <tr>
+                                <td class="font-semibold">Year 1 (2025)</td>
+                                <td>50,000</td>
+                                <td>$60,000</td>
+                                <td class="text-green-400">$42,000</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Year 2 (2026)</td>
+                                <td>200,000</td>
+                                <td>$900,000</td>
+                                <td class="text-green-400">$630,000</td>
+                            </tr>
+                            <tr>
+                                <td class="font-semibold">Year 3 (2027)</td>
+                                <td>500,000</td>
+                                <td>$2.5M</td>
+                                <td class="text-green-400">$1.75M</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-xs text-zinc-500 mt-4 px-2">Projecting 70%+ SaaS margins by Year 3 due to scalable technology.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07: The Ask -->
+        <section id="ask" class="py-24 section-glow">
+            <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-12 animate-on-scroll">Funding Request: <span class="gradient-text">$250,000</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <div class="card p-6 rounded-xl animate-on-scroll" style="--delay: 0.1s;">
+                    <p class="text-3xl font-bold text-neon-cyan mb-2">40%</p>
+                    <h4 class="text-lg font-semibold text-white mb-2">Product & Engineering</h4>
+                    <p class="text-zinc-400 text-sm">$100,000 for AI enhancements, native cellular integration, and security audits.</p>
+                </div>
+                <div class="card p-6 rounded-xl animate-on-scroll" style="--delay: 0.2s;">
+                    <p class="text-3xl font-bold text-neon-cyan mb-2">30%</p>
+                    <h4 class="text-lg font-semibold text-white mb-2">Marketing & Growth</h4>
+                    <p class="text-zinc-400 text-sm">$75,000 to reach 50,000 users by Dec 2025, targeting professionals.</p>
+                </div>
+                <div class="card p-6 rounded-xl animate-on-scroll" style="--delay: 0.3s;">
+                    <p class="text-3xl font-bold text-neon-cyan mb-2">30%</p>
+                    <h4 class="text-lg font-semibold text-white mb-2">Team & Operations</h4>
+                    <p class="text-zinc-400 text-sm">$75,000 for key hires in engineering, growth, and operations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08: Team -->
+        <section id="team" class="py-24">
+            <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-12 animate-on-scroll">The Team to Execute</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="card p-6 rounded-xl animate-on-scroll" style="--delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-white">Jishan Kapoor</h3>
+                    <p class="text-sm text-neon-cyan font-semibold mb-3">Founder</p>
+                    <p class="text-zinc-300 text-sm">University of Toronto 3rd-year student and JP Morgan Chase intern who bootstrapped Comsierge from scratch.</p>
+                </div>
+                <div class="card p-6 rounded-xl animate-on-scroll" style="--delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-white">Rahul Sonnad</h3>
+                    <p class="text-sm text-neon-cyan font-semibold mb-3">Advisor</p>
+                    <p class="text-zinc-300 text-sm">CEO of Tesloop. Sold his first startup to Comcast for over $100M. Former roles at Microsoft & Adobe. HBS MBA program alumnus.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 09: Closing CTA -->
+        <section id="contact" class="py-24 text-center section-glow">
+            <div class="animate-on-scroll">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Let's build the future of communication.</h2>
+                <p class="text-base md:text-lg text-zinc-400 mb-8 max-w-xl mx-auto">We are providing a proven solution to a universal problem, with traction, a scalable model, and a clear path to challenge the telecom giants.</p>
+                <a href="/signup" class="inline-block px-8 py-4 rounded-lg bg-white text-black font-bold text-base hover:bg-gray-200 transition-colors duration-200 transform hover:scale-105">
+                    Try Now
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-8 border-t border-zinc-900">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center text-zinc-500 text-sm">
+            <p>&copy; 2024 Comsierge. All rights reserved.</p>
+            <div class="space-x-4 mt-4 sm:mt-0">
+                <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    // Adjust for fixed header height
+                    const headerOffset = 70;
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }
+            });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const openIcon = document.getElementById('menu-open-icon');
+        const closeIcon = document.getElementById('menu-close-icon');
+
+        mobileMenuButton.addEventListener('click', () => {
+            const isMenuOpen = !mobileMenu.classList.contains('hidden');
+            mobileMenu.classList.toggle('hidden', isMenuOpen);
+            openIcon.classList.toggle('hidden', !isMenuOpen);
+            closeIcon.classList.toggle('hidden', isMenuOpen);
+        });
+
+        // Close mobile menu when a link is clicked
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            // Don't prevent default for the signup link
+            if (link.getAttribute('href') === '/signup') return;
+
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                openIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

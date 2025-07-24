@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Comsierge | Upcoming Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/upcoming.js') }}"></script>
+    <script>const phoneId = '{{ phone_id | safe }}';</script>
+    <style>
+        body {
+            background-color: #0A0A0A;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        .notification-banner {
+            background-color: #10B981;
+            color: #ffffff;
+            padding: 8px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+        }
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .particle {
+            fill: #ffffff;
+            opacity: 0.5;
+            animation: float 10s infinite;
+        }
+        .particle-magenta {
+            fill: #FF00FF;
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        .content-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-section {
+            flex-grow: 1;
+        }
+
+        /* Rotation animation for refresh icon */
+        .rotate {
+            animation: spin 0.5s linear;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Notification Banner -->
+    <div id="notification-banner" class="notification-banner hidden" role="alert"></div>
+
+    <!-- Particle Background -->
+    <svg class="particles hidden md:block" aria-hidden="true">
+        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;"></circle>
+        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;"></circle>
+        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;"></rect>
+        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;"></circle>
+        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;"></rect>
+    </svg>
+
+    <!-- Menu -->
+    {% include 'menu.html' %}
+
+    <!-- Header -->
+    {% include 'header.html' %}
+
+    <!-- Main Content Wrapper -->
+    <div class="content-wrapper w-full">
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">
+            <section id="upcoming-events" class="content-section py-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">Upcoming Events</h2>
+                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button
+                            id="refresh-events"
+                            class="text-white hover:text-neon-cyan transition-colors duration-200"
+                            title="Refresh Events"
+                            aria-label="Refresh Events"
+                        >
+                            <svg id="refresh-events-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                </path>
+                            </svg>
+                        </button>
+                        <button
+                            class="bg-red-500 text-white font-semibold px-3 py-1.5 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200"
+                            onclick="deleteAllEvents()"
+                        >
+                            Delete All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-[#101010] rounded-xl p-4 border border-zinc-800">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                        <h3 class="text-base font-semibold text-white">Upcoming Events</h3>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <select
+                                id="filter-time-select"
+                                class="bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan"
+                                aria-label="Filter upcoming events by time"
+                                onchange="filterEvents()"
+                            >
+                                <option value="all">All Times</option>
+                                <option value="today">Today</option>
+                                <option value="tomorrow">Tomorrow</option>
+                                <option value="next-week">Next Week</option>
+                                <option value="next-month">Next Month</option>
+                                <option value="later">Later</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="event-list" class="space-y-3">
+                        {% if events %}
+                            {% for event in events %}
+                                <div
+                                    class="event-item flex justify-between items-start p-3 rounded-md hover:bg-zinc-800 transition-colors"
+                                    data-timestamp="{{ event.proposed_time.isoformat() if event.proposed_time else '' }}"
+                                    data-event-id="{{ event._id }}"
+                                    data-sender="{{ event.alias }}"
+                                    data-description="{{ event.description }}"
+                                    data-status="{{ event.status | lower }}"
+                                    data-latest="{{ 'true' if event.is_latest else 'false' }}"
+                                    data-group-id="{{ event.group_id }}"
+                                    style="border-left: 4px solid {% if event.status == 'canceled' %}#EF4444{% elif event.status == 'rescheduled' %}#FBBF24{% else %}#10B981{% endif %};"
+                                >
+                                    <div class="event-content flex-1">
+                                        <p class="font-semibold text-white text-sm">
+                                            {{ event.alias }}: {{ event.description }} {% if event.is_latest %}<span class="ml-2 text-zinc-400">▼</span>{% endif %}
+                                        </p>
+                                        <p class="text-xs font-medium" style="color: {% if event.status == 'canceled' %}#EF4444{% elif event.status == 'rescheduled' %}#FBBF24{% else %}#10B981{% endif %};">
+                                            Status: {{ event.status | capitalize }}
+                                            {% if event.reason %} ({{ event.reason }}){% endif %}
+                                        </p>
+                                        <p class="text-xs text-zinc-400 mt-1">
+                                            {% if event.proposed_time %}
+                                                {{ event.proposed_time.strftime('%b %d, %Y, %H:%M') }} UTC
+                                            {% else %}
+                                                Time not specified
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    {% if event.is_latest %}
+                                    <button type="button" onclick="deleteGroup('{{ event.group_id }}')" class="text-red-400 hover:text-red-600 transition-colors">
+                                        🗑️
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <p id="no-events-msg" class="text-xs text-zinc-400 text-center {% if events %}hidden{% endif %}">No upcoming events found.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        document.getElementById('refresh-events').addEventListener('click', function () {
+            const icon = document.getElementById('refresh-events-icon');
+            icon.classList.add('rotate');
+            setTimeout(() => {
+                icon.classList.remove('rotate');
+                location.reload();
+            }, 500); // matches the CSS animation duration
+        });
+    </script>
+</body>
+</html>

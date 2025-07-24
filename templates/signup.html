@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00FFFF;
+            --neon-magenta: #FF00FF;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A0A0A;
+            color: #EAEAEA;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-glow {
+            box-shadow: 0 1px 0 rgba(0, 255, 255, 0.15);
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            fill: rgba(0, 255, 255, 0.1);
+            animation: float 10s ease-in-out infinite;
+        }
+        .particle-magenta {
+            fill: rgba(255, 0, 255, 0.1);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .signup-box {
+            background: rgba(24, 24, 27, 0.9);
+            border: 1px solid #27272A;
+            border-radius: 1rem;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+            position: relative;
+        }
+        input {
+            background: #171717;
+            border: 1px solid #27272A;
+            color: #EAEAEA;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            transition: border-color 0.3s ease;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+        }
+        button {
+            background: #FFFFFF;
+            border: 1px solid #FFFFFF;
+            color: #000000;
+            font-weight: 600;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--neon-cyan);
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+        }
+        .error-message, .success-message {
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+        .error-message.visible, .success-message.visible {
+            opacity: 1;
+        }
+        .error-message {
+            color: #FF5555;
+            background: rgba(255, 85, 85, 0.1);
+        }
+        .success-message {
+            color: #00FFFF;
+            background: rgba(0, 255, 255, 0.1);
+        }
+        @media (max-width: 768px) {
+            .signup-box {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            .particles {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg class="particles">
+        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;" />
+        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;" />
+        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;" />
+        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;" />
+        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;" />
+    </svg>
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/90 backdrop-blur-md header-glow">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" class="text-lg font-bold text-white">
+          <h1>Comsierge</h1>
+        </a>
+            <a href="investors" class="bg-white text-black font-semibold px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 transition-colors duration-200">Investors</a>
+        </div>
+    </header>
+    <div class="signup-box">
+        <h2 class="text-2xl font-bold text-white text-center mb-6">Sign Up for Comsierge</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="{{ 'success-message' if category == 'success' else 'error-message' }} visible">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="/signup" id="signupForm">
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-zinc-400 mb-2">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter full name" class="text-sm" required>
+            </div>
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-zinc-400 mb-2">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" class="text-sm" required>
+            </div>
+            <div class="mb-4">
+                <label for="phone" class="block text-sm font-medium text-zinc-400 mb-2">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter phone number (e.g., +1234567890)" class="text-sm" required>
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-sm font-medium text-zinc-400 mb-2">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="Enter password" class="text-sm" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <p class="text-center text-sm text-zinc-400 mt-4">
+            Already have an account? <a href="/login" class="text-neon-cyan hover:underline">Log in</a>
+        </p>
+    </div>
+    <script>
+        let errorTimeout;
+        function showError(message, formId) {
+            const form = document.getElementById(formId);
+            // Remove existing error message
+            const existingError = form.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            // Clear any existing timeout
+            if (errorTimeout) {
+                clearTimeout(errorTimeout);
+            }
+            // Create and add new error message
+            const errorContainer = document.createElement('p');
+            errorContainer.className = 'error-message visible';
+            errorContainer.textContent = message;
+            form.prepend(errorContainer);
+            // Set timeout to remove error after 5 seconds
+            errorTimeout = setTimeout(() => {
+                errorContainer.classList.remove('visible');
+                setTimeout(() => errorContainer.remove(), 300); // Wait for fade-out transition
+            }, 5000);
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+            } else {
+                input.type = 'password';
+                button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+            }
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!/^[a-zA-Z\s]{2,50}$/.test(name)) {
+                e.preventDefault();
+                showError('Name must be 2-50 characters long and contain only letters and spaces.', 'signupForm');
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+                e.preventDefault();
+                showError('Username must be 3-20 characters long and contain only letters, numbers, or underscores.', 'signupForm');
+                return;
+            }
+
+            if (!/^\+\d{10,15}$/.test(phone)) {
+                e.preventDefault();
+                showError('Invalid phone number format. Use + followed by 10-15 digits.', 'signupForm');
+                return;
+            }
+
+            if (password.length < 6) {
+                e.preventDefault();
+                showError('Password must be at least 6 characters long.', 'signupForm');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

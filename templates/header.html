@@ -1,0 +1,25 @@
+<!-- Near-black strip above the header to fill the top 20px gap -->
+<div class="fixed top-0 left-0 right-0 h-5 bg-[#0A0A0A] z-10 pointer-events-none"></div>
+
+<!-- Header with higher z-index to be on top of the strip -->
+<header class="fixed top-5 left-0 right-0 z-20 bg-[#0A0A0A] header-glow border-b border-zinc-800">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center max-w-7xl">
+        <div class="flex items-center space-x-3">
+            {% if session.logged_in and not is_admin() and get_phone_number() %}
+            <button class="md:hidden text-white hover:text-neon-cyan transition-colors" onclick="toggleSidebar()" aria-label="Open sidebar">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            {% endif %}
+            <h1 id="header-title" class="text-base font-bold text-white">{% block header_title %}{% endblock %}</h1>
+        </div>
+        <div class="flex items-center space-x-3">
+            {% if session.logged_in %}
+                <span class="text-xs text-zinc-400 hidden sm:block">{{ session.username }}</span>
+                <a href="{{ url_for('logout') }}" class="bg-white text-black font-semibold px-2.5 py-1 rounded-lg text-xs hover:bg-gray-200 transition-colors duration-200">Logout</a>
+            {% endif %}
+        </div>
+    </div>
+</header>

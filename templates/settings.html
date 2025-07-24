@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .bubble {
+            display: inline-flex;
+            align-items: center;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .bubble .delete-bubble {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1rem;
+            height: 1rem;
+            background-color: #1d4ed8;
+            color: white;
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            font-size: 0.6rem;
+        }
+        .error-message {
+            color: #ff5555;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .mode-section {
+            background-color: #1f1f1f;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #333;
+        }
+        .mode-section h4 {
+            color: #ffffff;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        .mode-section p {
+            color: #d1d5db;
+            font-size: 0.875rem;
+        }
+        .mode-section button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        .mode-section button:hover {
+            background-color: rgba(239, 68, 68, 0.1); /* Subtle hover for bin */
+            border-radius: 0.25rem;
+        }
+        .notification-banner {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Notification Banner -->
+    <div id="notification-banner" class="notification-banner" role="alert"></div>
+
+    <!-- Particle Background -->
+    <svg class="particles hidden md:block" aria-hidden="true">
+        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;" />
+        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;" />
+        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;" />
+        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;" />
+        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;" />
+    </svg>
+
+    <!-- Menu -->
+    {% include 'menu.html' %}
+
+    <!-- Header -->
+    {% block header_title %}Settings{% endblock %}
+    {% include 'header.html' %}
+
+    <!-- Main Content Wrapper -->
+    <div class="content-wrapper w-full">
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">
+            <section id="settings" class="content-section py-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-6">Settings</h2>
+                <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800">
+                    <h3 class="text-base font-semibold text-white mb-4">General Preferences</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="phone-number" class="block text-xs font-medium text-zinc-400 mb-2">Your Phone Number</label>
+                            <div class="flex gap-3">
+                                <input id="phone-number" type="tel" placeholder="+1234567890" value="{{ personal_phone }}" class="mt-1 flex-1 bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Enter your phone number" aria-describedby="phone-number-error" />
+                                <button id="save-phone-number" class="bg-white text-black font-semibold px-3 py-2 rounded-lg text-xs hover:bg-opacity-80 transition-colors duration-200">Save</button>
+                            </div>
+                            <p id="phone-number-error" class="error-message" style="display: none;">Please enter a valid phone number.</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-white mb-3">Sending Mode</h4>
+                            <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs text-white flex-1">Send only High & Medium priority messages</label>
+                                    <input type="radio" name="sending-mode" id="high-medium-messages" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Send only high and medium priority messages" {% if sending_mode.mode == 'high_medium' %}checked{% endif %}>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs text-white flex-1">Send only High priority messages</label>
+                                    <input type="radio" name="sending-mode" id="high-messages" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Send only high priority messages" {% if sending_mode.mode == 'high' %}checked{% endif %}>
+                                </div>
+                                <div id="high-messages-options" class="space-y-3 pl-4 {% if sending_mode.mode != 'high' %}hidden{% endif %}">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="high-duration" id="high-until-stopped" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="High priority until stopped" {% if sending_mode.mode == 'high' and sending_mode.duration == 'until_stopped' %}checked{% endif %} checked>
+                                        <label for="high-until-stopped" class="text-xs text-white">Until Stopped</label>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="high-duration" id="schedule-high" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Schedule high priority" {% if sending_mode.mode == 'high' and sending_mode.duration != 'until_stopped' %}checked{% endif %}>
+                                        <label for="schedule-high" class="text-xs text-white">Schedule</label>
+                                    </div>
+                                    <div id="high-schedule" class="flex flex-col sm:flex-row gap-3 {% if sending_mode.mode != 'high' or sending_mode.duration == 'until_stopped' %}hidden{% endif %}">
+                                        <div class="flex-1">
+                                            <label for="high-start-date" class="block text-xs font-medium text-zinc-400 mb-2">Start Date (UTC)</label>
+                                            <input id="high-start-date" type="date" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Start date for high priority" value="{% if sending_mode.mode == 'high' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.start.strftime('%Y-%m-%d') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="high-start-time" class="block text-xs font-medium text-zinc-400 mb-2">Start Time (UTC)</label>
+                                            <input id="high-start-time" type="time" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Start time for high priority" value="{% if sending_mode.mode == 'high' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.start.strftime('%H:%M') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="high-end-date" class="block text-xs font-medium text-zinc-400 mb-2">End Date (UTC)</label>
+                                            <input id="high-end-date" type="date" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="End date for high priority" value="{% if sending_mode.mode == 'high' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.end.strftime('%Y-%m-%d') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="high-end-time" class="block text-xs font-medium text-zinc-400 mb-2">End Time (UTC)</label>
+                                            <input id="high-end-time" type="time" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="End time for high priority" value="{% if sending_mode.mode == 'high' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.end.strftime('%H:%M') }}{% endif %}">
+                                        </div>
+                                    </div>
+                                    <p id="high-time-error" class="error-message" style="display: none;">Invalid time range.</p>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs text-white flex-1">Send all messages</label>
+                                    <input type="radio" name="sending-mode" id="all-messages" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Send all messages" {% if sending_mode.mode == 'all' %}checked{% endif %}>
+                                </div>
+                                <div id="all-messages-options" class="space-y-3 pl-4 {% if sending_mode.mode != 'all' %}hidden{% endif %}">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="all-duration" id="all-until-stopped" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="All messages until stopped" {% if sending_mode.mode == 'all' and sending_mode.duration == 'until_stopped' %}checked{% endif %} checked>
+                                        <label for="all-until-stopped" class="text-xs text-white">Until Stopped</label>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="all-duration" id="schedule-all" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Schedule all messages" {% if sending_mode.mode == 'all' and sending_mode.duration != 'until_stopped' %}checked{% endif %}>
+                                        <label for="schedule-all" class="text-xs text-white">Schedule</label>
+                                    </div>
+                                    <div id="all-schedule" class="flex flex-col sm:flex-row gap-3 {% if sending_mode.mode != 'all' or sending_mode.duration == 'until_stopped' %}hidden{% endif %}">
+                                        <div class="flex-1">
+                                            <label for="all-start-date" class="block text-xs font-medium text-zinc-400 mb-2">Start Date (UTC)</label>
+                                            <input id="all-start-date" type="date" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Start date for all messages" value="{% if sending_mode.mode == 'all' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.start.strftime('%Y-%m-%d') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="all-start-time" class="block text-xs font-medium text-zinc-400 mb-2">Start Time (UTC)</label>
+                                            <input id="all-start-time" type="time" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Start time for all messages" value="{% if sending_mode.mode == 'all' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.start.strftime('%H:%M') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="all-end-date" class="block text-xs font-medium text-zinc-400 mb-2">End Date (UTC)</label>
+                                            <input id="all-end-date" type="date" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="End date for all messages" value="{% if sending_mode.mode == 'all' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.end.strftime('%Y-%m-%d') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="all-end-time" class="block text-xs font-medium text-zinc-400 mb-2">End Time (UTC)</label>
+                                            <input id="all-end-time" type="time" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="End time for all messages" value="{% if sending_mode.mode == 'all' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.end.strftime('%H:%M') }}{% endif %}">
+                                        </div>
+                                    </div>
+                                    <p id="all-time-error" class="error-message" style="display: none;">Invalid time range.</p>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs text-white flex-1">Do Not Disturb (Send no messages)</label>
+                                    <input type="radio" name="sending-mode" id="no-messages" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Send no messages" {% if sending_mode.mode == 'dnd' %}checked{% endif %}>
+                                </div>
+                                <div id="no-messages-options" class="space-y-3 pl-4 {% if sending_mode.mode != 'dnd' %}hidden{% endif %}">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="dnd-duration" id="dnd-until-stopped" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Do Not Disturb until stopped" {% if sending_mode.mode == 'dnd' and sending_mode.duration == 'until_stopped' %}checked{% endif %} checked>
+                                        <label for="dnd-until-stopped" class="text-xs text-white">Until Stopped</label>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="dnd-duration" id="schedule-dnd" class="h-4 w-4 text-gray-700 focus:ring-gray-700 bg-zinc-900 rounded" aria-label="Schedule Do Not Disturb" {% if sending_mode.mode == 'dnd' and sending_mode.duration != 'until_stopped' %}checked{% endif %}>
+                                        <label for="schedule-dnd" class="text-xs text-white">Schedule</label>
+                                    </div>
+                                    <div id="dnd-schedule" class="flex flex-col sm:flex-row gap-3 {% if sending_mode.mode != 'dnd' or sending_mode.duration == 'until_stopped' %}hidden{% endif %}">
+                                        <div class="flex-1">
+                                            <label for="dnd-start-date" class="block text-xs font-medium text-zinc-400 mb-2">Start Date (UTC)</label>
+                                            <input id="dnd-start-date" type="date" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Start date for Do Not Disturb" value="{% if sending_mode.mode == 'dnd' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.start.strftime('%Y-%m-%d') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="dnd-start-time" class="block text-xs font-medium text-zinc-400 mb-2">Start Time (UTC)</label>
+                                            <input id="dnd-start-time" type="time" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Start time for Do Not Disturb" value="{% if sending_mode.mode == 'dnd' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.start.strftime('%H:%M') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="dnd-end-date" class="block text-xs font-medium text-zinc-400 mb-2">End Date (UTC)</label>
+                                            <input id="dnd-end-date" type="date" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="End date for Do Not Disturb" value="{% if sending_mode.mode == 'dnd' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.end.strftime('%Y-%m-%d') }}{% endif %}">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="dnd-end-time" class="block text-xs font-medium text-zinc-400 mb-2">End Time (UTC)</label>
+                                            <input id="dnd-end-time" type="time" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="End time for Do Not Disturb" value="{% if sending_mode.mode == 'dnd' and sending_mode.duration != 'until_stopped' %}{{ sending_mode.duration.end.strftime('%H:%M') }}{% endif %}">
+                                        </div>
+                                    </div>
+                                    <p id="dnd-time-error" class="error-message" style="display: none;">Invalid time range.</p>
+                                </div>
+                            </div>
+                            <button id="save-sending-mode" class="mt-4 bg-white text-black font-semibold px-3 py-2 rounded-lg text-xs hover:bg-opacity-80 transition-colors duration-200">Save</button>
+                        </div>
+                        <div class="mode-section flex items-start justify-between">
+                            <div>
+                                <h4 class="text-white font-semibold">Current Sending Mode</h4>
+                                <p id="current-mode" class="text-gray-300 mt-1">{{ current_sending_mode if current_sending_mode else 'High & Medium Priority until stopped' }}</p>
+                            </div>
+                            <svg class="w-5 h-5 text-green-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <!-- Check icon for active -->
+                        </div>
+                        <div class="mode-section flex items-start justify-between">
+                            <div>
+                                <h4 class="text-white font-semibold">Upcoming Sending Mode</h4>
+                                <p id="upcoming-mode" class="text-gray-300 mt-1 italic">{{ upcoming_sending_mode if upcoming_sending_mode else 'None' }}</p>
+                            </div>
+                            {% if upcoming_sending_mode != 'None' %}
+                            <button id="cancel-upcoming" class="text-red-500 hover:text-red-700" title="Cancel Upcoming">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6v1-10V4a1 1 00-1-1h-4a1 1 00-1 1v3M4 7h16"></path></svg> <!-- Bin icon -->
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="receive-language" class="block text-xs font-medium text-zinc-400 mb-2">Receive Message In</label>
+                            <select id="receive-language" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" aria-label="Select receive message language">
+                                <option {% if receive_language == 'English' %}selected{% endif %}>English</option>
+                                <option {% if receive_language == 'Spanish' %}selected{% endif %}>Spanish</option>
+                                <option {% if receive_language == 'French' %}selected{% endif %}>French</option>
+                                <option {% if receive_language == 'German' %}selected{% endif %}>German</option>
+                                <option {% if receive_language == 'Italian' %}selected{% endif %}>Italian</option>
+                                <option {% if receive_language == 'Portuguese' %}selected{% endif %}>Portuguese</option>
+                                <option {% if receive_language == 'Russian' %}selected{% endif %}>Russian</option>
+                                <option {% if receive_language == 'Chinese' %}selected{% endif %}>Chinese</option>
+                                <option {% if receive_language == 'Japanese' %}selected{% endif %}>Japanese</option>
+                                <option {% if receive_language == 'Korean' %}selected{% endif %}>Korean</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="send-language" class="block text-xs font-medium text-zinc-400 mb-2">Send Message In</label>
+                            <select id="send-language" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" aria-label="Select send message language">
+                                <option {% if send_language == 'English' %}selected{% endif %}>English</option>
+                                <option {% if send_language == 'Spanish' %}selected{% endif %}>Spanish</option>
+                                <option {% if send_language == 'French' %}selected{% endif %}>French</option>
+                                <option {% if send_language == 'German' %}selected{% endif %}>German</option>
+                                <option {% if send_language == 'Italian' %}selected{% endif %}>Italian</option>
+                                <option {% if send_language == 'Portuguese' %}selected{% endif %}>Portuguese</option>
+                                <option {% if send_language == 'Russian' %}selected{% endif %}>Russian</option>
+                                <option {% if send_language == 'Chinese' %}selected{% endif %}>Chinese</option>
+                                <option {% if send_language == 'Japanese' %}selected{% endif %}>Japanese</option>
+                                <option {% if send_language == 'Korean' %}selected{% endif %}>Korean</option>
+                            </select>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-semibold text-white mt-6 mb-4">Priority Rules</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="priority-from" class="block text-xs font-medium text-zinc-400 mb-2">From (Contact or Number)</label>
+                            <input id="priority-from" type="text" placeholder="e.g., John or +1234567890" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Enter a contact name or phone number" aria-describedby="priority-from-error" />
+                            <p id="priority-from-error" class="error-message" style="display: none;">Please enter a valid contact or number.</p>
+                            <div id="priority-from-list" class="mt-2 flex flex-wrap gap-2">
+                                {% for pf in priority_from_displays %}
+                                <div class="bubble">{{ pf.display }} <span class="delete-bubble" onclick="removePriorityFrom('{{ pf.value }}')">✕</span></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="priority-keywords" class="block text-xs font-medium text-zinc-400 mb-2">Keywords (optional)</label>
+                            <input id="priority-keywords" type="text" placeholder="e.g., urgent, meeting" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Enter comma-separated keywords" aria-describedby="priority-keywords-error" />
+                            <p id="priority-keywords-error" class="error-message" style="display: none;">Enter valid keywords (letters, numbers, spaces, or commas).</p>
+                            <div id="priority-keywords-list" class="mt-2 flex flex-wrap gap-2">
+                                {% for kw in priority_keywords %}
+                                <div class="bubble">{{ kw }} <span class="delete-bubble" onclick="removePriorityKeyword('{{ kw }}')">✕</span></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-semibold text-white mt-6 mb-4">Spam Rules</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="spam-from" class="block text-xs font-medium text-zinc-400 mb-2">Ignore Spam From (Contact or Number)</label>
+                            <input id="spam-from" type="text" placeholder="e.g., John or +1234567890" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Enter a contact name or phone number to block" aria-describedby="spam-from-error" />
+                            <p id="spam-from-error" class="error-message" style="display: none;">Please enter a valid contact or number.</p>
+                            <div id="spam-from-list" class="mt-2 flex flex-wrap gap-2">
+                                {% for sf in spam_ignore_displays %}
+                                <div class="bubble">{{ sf.display }} <span class="delete-bubble" onclick="removeSpamIgnoreFrom('{{ sf.value }}')">✕</span></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="spam-keywords" class="block text-xs font-medium text-zinc-400 mb-2">Spam Keywords (optional)</label>
+                            <input id="spam-keywords" type="text" placeholder="e.g., sale, promotion" class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-700" data-tooltip="Enter comma-separated spam keywords" aria-describedby="spam-keywords-error" />
+                            <p id="spam-keywords-error" class="error-message" style="display: none;">Enter valid keywords (letters, numbers, spaces, or commas).</p>
+                            <div id="spam-keywords-list" class="mt-2 flex flex-wrap gap-2">
+                                {% for kw in spam_keywords %}
+                                <div class="bubble">{{ kw }} <span class="delete-bubble" onclick="removeSpamKeyword('{{ kw }}')">✕</span></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            updateUTCTime();
+            setInterval(updateUTCTime, 1000); // Update UTC time every second
+        });
+
+        function updateUTCTime() {
+            const now = new Date();
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' };
+            document.getElementById('utc-time').textContent = now.toLocaleString('en-US', options) + ' UTC';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Save Phone Number
+        document.getElementById('save-phone-number').addEventListener('click', () => {
+            const phoneNumber = document.getElementById('phone-number').value.trim();
+            if (!phoneNumber || !/^\+\d{10,15}$/.test(phoneNumber)) {
+                document.getElementById('phone-number-error').style.display = 'block';
+                return;
+            }
+            document.getElementById('phone-number-error').style.display = 'none';
+
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'update_personal_phone',
+                    'phone_number': phoneNumber
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Phone number saved successfully!' : data.error || 'Error saving phone number.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error saving phone number.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        // Save Sending Mode
+        document.getElementById('save-sending-mode').addEventListener('click', () => {
+            const selectedMode = document.querySelector('input[name="sending-mode"]:checked');
+            if (!selectedMode) {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Please select a sending mode.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                return;
+            }
+            const modeId = selectedMode.id;
+            let mode;
+            let duration = 'until_stopped';
+            let startDate, startTime, endDate, endTime;
+            let scheduleDiv;
+            let errorId;
+            if (modeId === 'high-medium-messages') {
+                mode = 'high_medium';
+                duration = 'until_stopped'; // Always until_stopped for high_medium
+            } else if (modeId === 'high-messages') {
+                mode = 'high';
+                const durationRadio = document.querySelector('input[name="high-duration"]:checked');
+                if (durationRadio && durationRadio.id === 'schedule-high') {
+                    duration = 'schedule';
+                    scheduleDiv = document.getElementById('high-schedule');
+                    errorId = 'high-time-error';
+                    startDate = document.getElementById('high-start-date').value;
+                    startTime = document.getElementById('high-start-time').value;
+                    endDate = document.getElementById('high-end-date').value;
+                    endTime = document.getElementById('high-end-time').value;
+                }
+            } else if (modeId === 'all-messages') {
+                mode = 'all';
+                const durationRadio = document.querySelector('input[name="all-duration"]:checked');
+                if (durationRadio && durationRadio.id === 'schedule-all') {
+                    duration = 'schedule';
+                    scheduleDiv = document.getElementById('all-schedule');
+                    errorId = 'all-time-error';
+                    startDate = document.getElementById('all-start-date').value;
+                    startTime = document.getElementById('all-start-time').value;
+                    endDate = document.getElementById('all-end-date').value;
+                    endTime = document.getElementById('all-end-time').value;
+                }
+            } else if (modeId === 'no-messages') {
+                mode = 'dnd';
+                const durationRadio = document.querySelector('input[name="dnd-duration"]:checked');
+                if (durationRadio && durationRadio.id === 'schedule-dnd') {
+                    duration = 'schedule';
+                    scheduleDiv = document.getElementById('dnd-schedule');
+                    errorId = 'dnd-time-error';
+                    startDate = document.getElementById('dnd-start-date').value;
+                    startTime = document.getElementById('dnd-start-time').value;
+                    endDate = document.getElementById('dnd-end-date').value;
+                    endTime = document.getElementById('dnd-end-time').value;
+                }
+            }
+
+            let body = `action=update_sending_mode&mode=${mode}&duration=${duration}`;
+            if (duration === 'schedule') {
+                if (!startDate || !startTime || !endDate || !endTime) {
+                    document.getElementById(errorId).style.display = 'block';
+                    return;
+                }
+                const start = `${startDate}T${startTime}:00Z`;
+                const end = `${endDate}T${endTime}:00Z`;
+                const startDateObj = new Date(start);
+                const endDateObj = new Date(end);
+                if (isNaN(startDateObj) || isNaN(endDateObj) || endDateObj <= startDateObj) {
+                    document.getElementById(errorId).style.display = 'block';
+                    return;
+                }
+                body += `&start_date=${startDate}&start_time=${startTime}&end_date=${endDate}&end_time=${endTime}`;
+            } else {
+                // Hide time errors when not schedule
+                ['high-time-error', 'all-time-error', 'dnd-time-error'].forEach(id => {
+                    document.getElementById(id).style.display = 'none';
+                });
+            }
+
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: body
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Sending mode saved successfully!' : data.error || 'Error saving sending mode.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error saving sending mode.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        // Handle Sending Mode and Schedule Options
+        const sendingModes = document.getElementsByName('sending-mode');
+        sendingModes.forEach(mode => {
+            mode.addEventListener('change', () => {
+                document.getElementById('high-messages-options').classList.toggle('hidden', mode.id !== 'high-messages');
+                document.getElementById('all-messages-options').classList.toggle('hidden', mode.id !== 'all-messages');
+                document.getElementById('no-messages-options').classList.toggle('hidden', mode.id !== 'no-messages');
+                document.getElementById('high-schedule').classList.add('hidden');
+                document.getElementById('all-schedule').classList.add('hidden');
+                document.getElementById('dnd-schedule').classList.add('hidden');
+                ['high-time-error', 'all-time-error', 'dnd-time-error'].forEach(id => {
+                    document.getElementById(id).style.display = 'none';
+                });
+                if (mode.id === 'high-messages' && document.getElementById('schedule-high').checked) {
+                    document.getElementById('high-schedule').classList.remove('hidden');
+                }
+                if (mode.id === 'all-messages' && document.getElementById('schedule-all').checked) {
+                    document.getElementById('all-schedule').classList.remove('hidden');
+                }
+                if (mode.id === 'no-messages' && document.getElementById('schedule-dnd').checked) {
+                    document.getElementById('dnd-schedule').classList.remove('hidden');
+                }
+            });
+        });
+
+        document.getElementById('schedule-high').addEventListener('change', () => {
+            document.getElementById('high-schedule').classList.toggle('hidden', !document.getElementById('schedule-high').checked);
+            if (!document.getElementById('schedule-high').checked) document.getElementById('high-time-error').style.display = 'none';
+        });
+
+        document.getElementById('schedule-all').addEventListener('change', () => {
+            document.getElementById('all-schedule').classList.toggle('hidden', !document.getElementById('schedule-all').checked);
+            if (!document.getElementById('schedule-all').checked) document.getElementById('all-time-error').style.display = 'none';
+        });
+
+        document.getElementById('schedule-dnd').addEventListener('change', () => {
+            document.getElementById('dnd-schedule').classList.toggle('hidden', !document.getElementById('schedule-dnd').checked);
+            if (!document.getElementById('schedule-dnd').checked) document.getElementById('dnd-time-error').style.display = 'none';
+        });
+
+        // Add Bubble Function
+        function addBubble(inputId, listId, action) {
+            const input = document.getElementById(inputId);
+            const value = input.value.trim();
+            if (!value) {
+                document.getElementById(`${inputId}-error`).style.display = 'block';
+                return;
+            }
+            if (inputId.includes('from') && !/^\+\d{10,15}$/.test(value) && !/^[a-zA-Z\s]+$/.test(value)) {
+                document.getElementById(`${inputId}-error`).style.display = 'block';
+                document.getElementById(`${inputId}-error`).textContent = 'Enter a valid phone number (+ followed by 10-15 digits) or contact name.';
+                return;
+            }
+            if (inputId.includes('keywords') && !/^[a-zA-Z0-9\s,]+$/.test(value)) {
+                document.getElementById(`${inputId}-error`).style.display = 'block';
+                document.getElementById(`${inputId}-error`).textContent = 'Enter valid keywords (letters, numbers, spaces, or commas).';
+                return;
+            }
+            document.getElementById(`${inputId}-error`).style.display = 'none';
+
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': action,
+                    'value': value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Added successfully!' : data.error || 'Error adding item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) {
+                    input.value = ''; // Clear input after successful addition
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error adding item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        // Remove Bubble Functions
+        function removePriorityFrom(value) {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'remove_priority_from',
+                    'value': value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Removed successfully!' : data.error || 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        function removePriorityKeyword(value) {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'remove_priority_keyword',
+                    'value': value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Removed successfully!' : data.error || 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        function removeSpamIgnoreFrom(value) {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'remove_spam_ignore_from',
+                    'value': value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Removed successfully!' : data.error || 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        function removeSpamKeyword(value) {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'remove_spam_keyword',
+                    'value': value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Removed successfully!' : data.error || 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error removing item.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        // Handle Enter for adding
+        document.getElementById('priority-from').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('priority-from')) {
+                e.preventDefault();
+                addBubble('priority-from', 'priority-from-list', 'add_priority_from');
+            }
+        });
+
+        document.getElementById('priority-keywords').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('priority-keywords')) {
+                e.preventDefault();
+                addBubble('priority-keywords', 'priority-keywords-list', 'add_priority_keyword');
+            }
+        });
+
+        document.getElementById('spam-from').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('spam-from')) {
+                e.preventDefault();
+                addBubble('spam-from', 'spam-from-list', 'add_spam_ignore_from');
+            }
+        });
+
+        document.getElementById('spam-keywords').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('spam-keywords')) {
+                e.preventDefault();
+                addBubble('spam-keywords', 'spam-keywords-list', 'add_spam_keyword');
+            }
+        });
+
+        // Update Languages
+        document.getElementById('receive-language').addEventListener('change', () => {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'update_receive_language',
+                    'language': document.getElementById('receive-language').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Receive language saved successfully!' : data.error || 'Error saving receive language.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error saving receive language.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        document.getElementById('send-language').addEventListener('change', () => {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'update_send_language',
+                    'language': document.getElementById('send-language').value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Send language saved successfully!' : data.error || 'Error saving send language.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error saving send language.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        // Cancel Upcoming Mode
+        document.getElementById('cancel-upcoming')?.addEventListener('click', () => {
+            fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'action': 'cancel_upcoming'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-red-500', 'bg-green-500');
+                banner.classList.add(data.success ? 'bg-green-500' : 'bg-red-500');
+                banner.textContent = data.success ? 'Upcoming mode canceled successfully!' : data.error || 'Error canceling upcoming mode.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+                if (data.success) location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const banner = document.getElementById('notification-banner');
+                banner.classList.remove('bg-green-500');
+                banner.classList.add('bg-red-500');
+                banner.textContent = 'Error canceling upcoming mode.';
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

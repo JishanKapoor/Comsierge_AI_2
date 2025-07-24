@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Comsierge | Held Messages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <style>
+        .rotate {
+            animation: spin 0.5s linear;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Notification Banner -->
+    <div id="notification-banner" class="notification-banner" role="alert"></div>
+
+    <!-- Particle Background -->
+    <svg class="particles hidden md:block" aria-hidden="true">
+        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;"></circle>
+        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;"></circle>
+        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;"></rect>
+        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;"></circle>
+        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;"></rect>
+    </svg>
+
+    <!-- Menu -->
+    {% include 'menu.html' %}
+
+    <!-- Header -->
+    {% block header_title %}Held Messages{% endblock %}
+    {% include 'header.html' %}
+
+    <!-- Main Content Wrapper -->
+    <div class="content-wrapper w-full">
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">
+            <section id="held-messages" class="content-section py-8 {% if active_section == 'held-messages' %}active{% endif %}">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">Held Messages</h2>
+                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                    </div>
+                    <div class="flex flex-row gap-3 items-center">
+                        <!-- Refresh Icon Button -->
+                        <button
+                            id="refresh-held"
+                            class="text-white hover:text-neon-cyan transition-colors duration-200 flex items-center justify-center w-4 h-4 rounded-lg"
+                            title="Refresh Held Messages"
+                            aria-label="Refresh Held Messages"
+                            type="button"
+                        >
+                            <svg id="refresh-held-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                </path>
+                            </svg>
+                        </button>
+
+                        <!-- Delete All Button -->
+                        <button
+                            class="bg-red-500 text-white font-semibold px-3 py-1.5 rounded-lg text-sm hover:bg-red-600 transition-colors duration-200"
+                            onclick="deleteAllMessages()"
+                        >
+                            Delete All
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-[#101010] rounded-xl p-4 border border-zinc-800 animated-gradient-border">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                        <h3 class="text-base font-semibold text-white">Pending Review</h3>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-64">
+                                <input type="text" id="search-input" placeholder="Search held messages..." class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 pl-8 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Search held messages" oninput="filterMessages()" />
+                                <svg class="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <select id="sort-select" class="bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Sort held messages" onchange="sortMessages()">
+                                <option value="date-desc">Sort by Date (Newest)</option>
+                                <option value="date-asc">Sort by Date (Oldest)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="message-list" class="space-y-3">
+                        {% if spam_messages %}
+                            {% for msg in spam_messages %}
+                                <div class="message-item low flex justify-between items-start" data-timestamp="{{ msg.timestamp.isoformat() }}" data-sender="{{ contact.alias if contact else msg.from_number }}" data-body="{{ msg.body }}">
+                                    <div class="message-content flex-1">
+                                        {% set contact = contacts | selectattr('phone_number', 'equalto', msg.from_number) | first %}
+                                        <p class="font-semibold text-white text-sm">{{ contact.alias if contact else msg.from_number }}</p>
+                                        <p class="text-xs">{{ msg.body }}</p>
+                                        <p class="text-xs text-zinc-500 mt-1">{{ msg.timestamp.strftime('%b %d, %Y, %I:%M %p') }}</p>
+                                    </div>
+                                    <button type="button" onclick="deleteMessage('{{ msg._id }}')" class="text-red-400 hover:text-red-600 transition-colors">
+                                        🗑️
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-xs text-zinc-400">No held messages.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Inline JavaScript for Sidebar Toggle, Search, Sort, Delete and Refresh Icon Spin -->
+    <script>
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            console.log('Added body.loaded class');
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        function deleteMessage(messageId) {
+            if (confirm('Are you sure you want to delete this message?')) {
+                fetch(`/delete_held_messages/${messageId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Error deleting message: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting message');
+                });
+            }
+        }
+
+        function deleteAllMessages() {
+            if (confirm('Are you sure you want to delete all held messages?')) {
+                fetch('/delete_held_messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'action=delete_all'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Error deleting all messages: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting all messages');
+                });
+            }
+        }
+
+        function filterMessages() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const messages = document.querySelectorAll('.message-item');
+            messages.forEach(message => {
+                const sender = message.getAttribute('data-sender').toLowerCase();
+                const body = message.getAttribute('data-body').toLowerCase();
+                if (sender.includes(searchTerm) || body.includes(searchTerm)) {
+                    message.style.display = 'flex';
+                } else {
+                    message.style.display = 'none';
+                }
+            });
+        }
+
+        function sortMessages() {
+            const sortOrder = document.getElementById('sort-select').value;
+            const messageList = document.getElementById('message-list');
+            const messages = Array.from(messageList.querySelectorAll('.message-item'));
+            messages.sort((a, b) => {
+                const timeA = new Date(a.getAttribute('data-timestamp'));
+                const timeB = new Date(b.getAttribute('data-timestamp'));
+                return sortOrder === 'date-desc' ? timeB - timeA : timeA - timeB;
+            });
+            messageList.innerHTML = '';
+            if (messages.length === 0) {
+                messageList.innerHTML = '<p class="text-xs text-zinc-400">No held messages.</p>';
+            } else {
+                messages.forEach(message => messageList.appendChild(message));
+            }
+        }
+
+        // Refresh button spin + reload
+        document.getElementById('refresh-held').addEventListener('click', function() {
+            const icon = document.getElementById('refresh-held-icon');
+            icon.classList.add('rotate');
+            setTimeout(() => {
+                icon.classList.remove('rotate');
+                location.reload();
+            }, 500);
+        });
+
+        // Real-time update for new low priority messages
+        socketio.on('priority_updated', function(data) {
+            if (data.priority === 'low') {
+                window.location.reload();  // Reload to show new held message
+            }
+        });
+    </script>
+</body>
+</html>
