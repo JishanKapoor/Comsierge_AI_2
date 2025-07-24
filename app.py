@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+import eventlet
+eventlet.monkey_patch()
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from flask_bcrypt import Bcrypt
-from flask import jsonify
-from flask import make_response
+from flask_socketio import SocketIO, emit, join_room
 from functools import wraps
 from db import users_collection, store
 from bson.objectid import ObjectId
@@ -10,23 +12,20 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from datetime import datetime
 import pytz
-from routes import sms_forwarding, add_forwarding_rule, stop_forwarding_rule, sms_scheduling, schedule_message, \
-    cancel_message, add_contact, delete_chat, scheduler
+from routes import sms_forwarding, add_forwarding_rule, stop_forwarding_rule, sms_scheduling, schedule_message, cancel_message, add_contact, delete_chat, scheduler
 from admin import unassign_phone_number, delete_user
 import logging
 import re
-from flask_socketio import emit, join_room
-from extensions import socketio  # Add this
+from extensions import socketio
 import json
-from ai import classify_priority, allow_held_message, delete_held_messages, held_messages,classify_other, classify_high_type
+from ai import classify_priority, allow_held_message, delete_held_messages, held_messages, classify_other, classify_high_type
 import threading
-from settings import detect_language, translate_message # Add this import
-from settings import settings, get_effective_sending_mode # Add this import
+from settings import detect_language, translate_message, settings, get_effective_sending_mode
 import upcoming
 import ai
 from ai import HIGH_TYPES
 import random
-# Add this import
+
 # Configure logging
 logging.getLogger('pymongo').setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
