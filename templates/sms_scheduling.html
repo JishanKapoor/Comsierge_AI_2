@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -26,175 +27,173 @@
     </style>
 </head>
 <body class="antialiased bg-black text-white min-h-screen">
+    <!-- Notification Banner -->
     <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>
 
+    <!-- Menu -->
     {% include 'menu.html' %}
     {% set header_title = 'SMS Scheduling' %}
     {% include 'header.html' %}
 
+    <!-- Main Content -->
     <div class="content-wrapper w-full">
         <main class="px-4 pt-16 pb-12 max-w-full">
             <section id="sms-scheduling" class="py-8 active">
-                <div id="loader" class="flex justify-center items-center min-h-[50vh]">
-                    <svg class="animate-spin h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-                    </svg>
-                </div>
+                <h2 class="text-2xl font-bold mb-1">Schedule or Send SMS</h2>
+                <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
 
-                <div id="sms-content-wrapper" class="hidden">
-                    <h2 class="text-2xl font-bold mb-1">Schedule or Send SMS</h2>
-                    <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>
-                    <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
-
-                    <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                <div class="mb-6">
-                                    {% for category, message in messages %}
-                                        <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        {% endwith %}
-
-                        <form method="POST" action="{{ url_for('schedule_message_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return normalizeForm()">
-                            <div class="w-full">
-                                <label for="to_number" class="block text-xs font-medium text-zinc-400 mb-2">Phone Number</label>
-                                <input type="tel" id="to_number" name="to_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required="" oninput="addPlusSign()">
-
-                                <script>
-                                  function addPlusSign() {
-                                    var input = document.getElementById("to_number");
-                                    if (input.value && !input.value.startsWith("+")) {
-                                      input.value = "+" + input.value.replace(/[^0-9+]/g, ''); // This removes any non-numeric character except the plus sign
-                                    }
-                                  }
-                                </script>
-                                <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('to_number').value = this.value.startsWith('+') ? this.value : '+1' + this.value;">
-                                    <option value="" disabled selected>Select Contact</option>
-                                    {% for contact in contacts %}
-                                        <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
-                                    {% endfor %}
-                                </select>
+                <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="mb-6">
+                                {% for category, message in messages %}
+                                    <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>
+                                {% endfor %}
                             </div>
+                        {% endif %}
+                    {% endwith %}
 
-                            <div class="w-full">
-                                <label for="message_content" class="block text-xs font-medium text-zinc-400 mb-2">Message Content</label>
-                                <textarea id="message_content" name="message_content" maxlength="160" placeholder="Max 160 characters" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required></textarea>
+                    <!-- SMS Form -->
+                    <form method="POST" action="{{ url_for('schedule_message_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return normalizeForm()">
+                        <div class="w-full">
+                            <label for="to_number" class="block text-xs font-medium text-zinc-400 mb-2">Phone Number</label>
+                            <input type="tel" id="to_number" name="to_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required="" oninput="addPlusSign()">
+
+                            <script>
+                              function addPlusSign() {
+                                var input = document.getElementById("to_number");
+                                if (input.value && !input.value.startsWith("+")) {
+                                  input.value = "+" + input.value.replace(/[^0-9+]/g, ''); // This removes any non-numeric character except the plus sign
+                                }
+                              }
+                            </script>
+                            <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('to_number').value = this.value.startsWith('+') ? this.value : '+1' + this.value;">
+                                <option value="" disabled selected>Select Contact</option>
+                                {% for contact in contacts %}
+                                    <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="w-full">
+                            <label for="message_content" class="block text-xs font-medium text-zinc-400 mb-2">Message Content</label>
+                            <textarea id="message_content" name="message_content" maxlength="160" placeholder="Max 160 characters" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required></textarea>
+                        </div>
+
+                        <div class="w-full">
+                            <label for="send_type" class="block text-xs font-medium text-zinc-400 mb-2">Send Type</label>
+                            <select id="send_type" name="send_type" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="toggleScheduleFields()">
+                                <option value="instant">Send Instantly</option>
+                                <option value="scheduled">Schedule Message</option>
+                            </select>
+                        </div>
+
+                        <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 hidden" id="schedule_fields">
+                            <div>
+                                <label for="schedule_date" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Date (UTC)</label>
+                                <input type="date" id="schedule_date" name="schedule_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
+                                <p class="text-xs text-zinc-500 mt-1">Enter date in UTC timezone</p>
                             </div>
-
-                            <div class="w-full">
-                                <label for="send_type" class="block text-xs font-medium text-zinc-400 mb-2">Send Type</label>
-                                <select id="send_type" name="send_type" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="toggleScheduleFields()">
-                                    <option value="instant">Send Instantly</option>
-                                    <option value="scheduled">Schedule Message</option>
-                                </select>
-                            </div>
-
-                            <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 hidden" id="schedule_fields">
-                                <div>
-                                    <label for="schedule_date" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Date (UTC)</label>
-                                    <input type="date" id="schedule_date" name="schedule_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
-                                    <p class="text-xs text-zinc-500 mt-1">Enter date in UTC timezone</p>
-                                </div>
-                                <div>
-                                    <label for="schedule_time" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Time (UTC)</label>
-                                    <input type="time" id="schedule_time" name="schedule_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
-                                    <p class="text-xs text-zinc-500 mt-1">Enter time in UTC (24-hour format, e.g., 16:15 for 4:15 PM UTC)</p>
-                                </div>
-                            </div>
-
-                            <div class="w-full text-right">
-                                <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Send</button>
-                            </div>
-                        </form>
-
-                        <div class="mt-8">
-                            <h3 class="text-base font-semibold mb-4">Upcoming Scheduled SMS</h3>
-                            <div class="overflow-x-auto rounded-lg border border-zinc-800">
-                                <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
-                                    <thead>
-                                        <tr class="border-b border-zinc-800">
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled Time (UTC)</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pending-messages-body">
-                                        {% if pending_messages %}
-                                            {% for msg in pending_messages %}
-                                                <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
-                                                    <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
-                                                    <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
-                                                    <td class="px-4 py-3 text-xs message-timestamp">
-                                                        {{ msg.schedule_time.strftime('%b %d, %Y, %I:%M %p') if msg.schedule_time else 'Instant' }}
-                                                    </td>
-                                                    <td class="px-4 py-3 text-xs message-status text-yellow-400">
-                                                        {{ msg.status | capitalize }}
-                                                    </td>
-                                                    <td class="px-4 py-3 text-xs message-actions">
-                                                        <form method="POST" action="{{ url_for('cancel_message_route', msg_id=msg._id) }}" onsubmit="return confirm('Cancel this scheduled message?')">
-                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Cancel</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        {% else %}
-                                            <tr>
-                                                <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No scheduled messages.</td>
-                                            </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
+                            <div>
+                                <label for="schedule_time" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Time (UTC)</label>
+                                <input type="time" id="schedule_time" name="schedule_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
+                                <p class="text-xs text-zinc-500 mt-1">Enter time in UTC (24-hour format, e.g., 16:15 for 4:15 PM UTC)</p>
                             </div>
                         </div>
 
-                        <div class="mt-8">
-                            <h3 class="text-base font-semibold mb-4">Past Messages (Last 24 Hours)</h3>
-                            <div class="overflow-x-auto rounded-lg border border-zinc-800">
-                                <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
-                                    <thead>
-                                        <tr class="border-b border-zinc-800">
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled/Sent Time (UTC)</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
-                                            <th class="px-4 py-2 text-left text-xs font-semibold">Details</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="past-messages-body">
-                                        {% if past_messages %}
-                                            {% for msg in past_messages %}
-                                                <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
-                                                    <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
-                                                    <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
-                                                    <td class="px-4 py-3 text-xs message-timestamp">
-                                                        {{ (msg.sent_at or msg.schedule_time or msg.updated_at).strftime('%b %d, %Y, %I:%M %p') }}
-                                                    </td>
-                                                    <td class="px-4 py-3 text-xs message-status {{ 'text-green-400' if msg.status == 'sent' else 'text-red-500' if msg.status == 'failed' else 'text-gray-400' }}">
-                                                        {{ msg.status | capitalize }}
-                                                    </td>
-                                                    <td class="px-4 py-3 text-xs message-actions">
-                                                        {% if msg.error %}
-                                                            Error: {{ msg.error }}
-                                                        {% elif msg.message_id %}
-                                                            Message ID: {{ msg.message_id }}
-                                                        {% else %}
-                                                            -
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        {% else %}
-                                            <tr>
-                                                <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No past messages in the last 24 hours.</td>
+                        <div class="w-full text-right">
+                            <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Send</button>
+                        </div>
+                    </form>
+
+                    <!-- Upcoming Scheduled SMS Table -->
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold mb-4">Upcoming Scheduled SMS</h3>
+                        <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                <thead>
+                                    <tr class="border-b border-zinc-800">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-messages-body">
+                                    {% if pending_messages %}
+                                        {% for msg in pending_messages %}
+                                            <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
+                                                <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
+                                                <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
+                                                <td class="px-4 py-3 text-xs message-timestamp">
+                                                    {{ msg.schedule_time.strftime('%b %d, %Y, %I:%M %p') if msg.schedule_time else 'Instant' }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-status text-yellow-400">
+                                                    {{ msg.status | capitalize }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-actions">
+                                                    <form method="POST" action="{{ url_for('cancel_message_route', msg_id=msg._id) }}" onsubmit="return confirm('Cancel this scheduled message?')">
+                                                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Cancel</button>
+                                                    </form>
+                                                </td>
                                             </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No scheduled messages.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Past Messages Table -->
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold mb-4">Past Messages (Last 24 Hours)</h3>
+                        <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                            <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                <thead>
+                                    <tr class="border-b border-zinc-800">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled/Sent Time (UTC)</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="past-messages-body">
+                                    {% if past_messages %}
+                                        {% for msg in past_messages %}
+                                            <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
+                                                <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
+                                                <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
+                                                <td class="px-4 py-3 text-xs message-timestamp">
+                                                    {{ (msg.sent_at or msg.schedule_time or msg.updated_at).strftime('%b %d, %Y, %I:%M %p') }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-status {{ 'text-green-400' if msg.status == 'sent' else 'text-red-500' if msg.status == 'failed' else 'text-gray-400' }}">
+                                                    {{ msg.status | capitalize }}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs message-actions">
+                                                    {% if msg.error %}
+                                                        Error: {{ msg.error }}
+                                                    {% elif msg.message_id %}
+                                                        Message ID: {{ msg.message_id }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No past messages in the last 24 hours.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -202,14 +201,11 @@
         </main>
     </div>
 
+    <!-- JavaScript -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
         window.addEventListener('load', () => {
-            // Hide loader and show the main content
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('sms-content-wrapper').classList.remove('hidden');
-
-            // Initialize other page functions
+            document.body.classList.add('loaded');
             toggleScheduleFields();
             updateUTCTime();
             setupSocketIO();
