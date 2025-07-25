@@ -1,497 +1,370 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="en" class="dark">-->
-<!--<head>-->
-<!--  <meta charset="UTF-8">-->
-<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">-->
-<!--  <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
-<!--  <title>Comsierge | Inbox</title>-->
-<!--  <script src="https://cdn.tailwindcss.com"></script>-->
-<!--  <link rel="preconnect" href="https://fonts.googleapis.com">-->
-<!--  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>-->
-<!--  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">-->
-<!--  <link rel="stylesheet" href="{{ url_for('static', filename='css/inbox.css') }}">-->
-<!--  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
-<!--  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>-->
-<!--</head>-->
-<!--<body class="antialiased bg-[#0a0a0a] text-white font-['Inter']">-->
-<!--  &lt;!&ndash; Notification Banner &ndash;&gt;-->
-<!--  <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>-->
-
-<!--  &lt;!&ndash; Particle Background &ndash;&gt;-->
-
-<!--  &lt;!&ndash; Menu &ndash;&gt;-->
-<!--  {% include 'menu.html' %}-->
-
-<!--  &lt;!&ndash; Header &ndash;&gt;-->
-<!--  {% set header_title = 'Inbox' %}-->
-<!--  {% include 'header.html' %}-->
-
-<!--  &lt;!&ndash; Main Content Wrapper &ndash;&gt;-->
-<!--  <div class="content-wrapper w-full">-->
-<!--    <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">-->
-<!--      <section id="inbox" class="content-section py-8 active">-->
-<!--        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">-->
-<!--          <div class="flex items-center gap-2">-->
-<!--            <button id="main-sidebar-toggle" class="md:hidden text-white text-lg" onclick="toggleSidebar()" aria-label="Toggle main sidebar">☰</button>-->
-<!--            <div>-->
-<!--              <h2 class="text-xl sm:text-2xl font-bold text-white">Inbox</h2>-->
-<!--              <p class="text-xs text-zinc-400 mt-1">{{ phone_number if phone_number else 'No phone number selected' }}</p>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="flex items-center gap-2">-->
-<!--            <button id="add-contact-btn" onclick="showModal('addContactModal')" class="bg-white text-black text-xs px-2 py-1 rounded-lg hover:bg-neon-magenta hover:text-white transition-colors duration-200">Add Contact</button>-->
-<!--            <button id="refresh-inbox" class="text-white hover:text-neon-cyan transition-colors duration-200" title="Refresh Inbox">-->
-<!--              <svg id="refresh-icon" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
-<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>-->
-<!--              </svg>-->
-<!--            </button>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="chat-container flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-150px)]">-->
-<!--          <div id="contact-list-container" class="w-full lg:w-1/3 bg-[#1a1a1d] p-4 flex flex-col">-->
-<!--            <div class="flex justify-between items-center mb-4 flex-shrink-0">-->
-<!--              <h2 class="text-lg font-bold text-white">Conversations</h2>-->
-<!--            </div>-->
-<!--            <div class="relative mb-4 flex-shrink-0">-->
-<!--              <input type="text" id="searchInput" placeholder="Search..." class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-1.5 pl-8 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Search conversations" onkeyup="filterConversations()" />-->
-<!--              <svg class="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3 h-3 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
-<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>-->
-<!--              </svg>-->
-<!--            </div>-->
-<!--            <div id="contactList" class="space-y-2 overflow-y-auto flex-1 scrollbar-hidden"></div>-->
-<!--          </div>-->
-<!--          <div id="conversation" class="w-full lg:w-2/3 flex flex-col h-[calc(100vh-200px)]">-->
-<!--            <div id="conversation-header" class="flex justify-between items-center mb-4 pb-2 border-b border-zinc-800 flex-shrink-0">-->
-<!--              <div class="flex items-center gap-2">-->
-<!--                <button id="back-btn" class="lg:hidden mr-4 text-neon-cyan text-xs">Back</button>-->
-<!--                <div>-->
-<!--                  <h3 id="conversation-title" class="font-bold text-lg text-neon-cyan">Select a conversation</h3>-->
-<!--                  <p id="conversation-phone" class="text-xs text-zinc-400"></p>-->
-<!--                  <p id="conversation-count" class="text-xs text-zinc-400"></p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="flex items-center gap-2">-->
-<!--                <button id="delete-chat-btn" class="bg-red-600 text-white text-xs px-2 py-1 rounded-lg hover:bg-red-700 transition-colors duration-200 hidden">Delete Chat</button>-->
-<!--                <button id="ai-summary-toggle" class="bg-white text-black p-2 rounded-full hover:bg-neon-magenta hover:text-white transition-colors" title="AI Summary & Suggestions">-->
-<!--                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">-->
-<!--                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />-->
-<!--                  </svg>-->
-<!--                </button>-->
-<!--                <button id="ai-controls-toggle" class="bg-white text-black p-2 rounded-full hover:bg-neon-magenta hover:text-white transition-colors" title="AI Controls">-->
-<!--                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">-->
-<!--                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37 1 .608 2.296.07 2.572-1.065z" />-->
-<!--                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />-->
-<!--                  </svg>-->
-<!--                </button>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div id="chatMessages" class="chat-messages flex-1 space-y-4 overflow-y-auto p-6 scrollbar-hidden"></div>-->
-<!--            <div id="message-input-container" class="message-input-container p-4 border-t border-zinc-800 flex flex-col gap-3 flex-shrink-0">-->
-<!--              <div class="flex items-center gap-2 mb-2">-->
-<!--                <div id="suggestions-container" class="flex flex-wrap gap-2 flex-1"></div>-->
-<!--                <button id="rewrite-btn" class="p-2 bg-white text-black rounded-full hover:bg-neon-magenta hover:text-white transition-colors" title="Rewrite with AI">-->
-<!--                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">-->
-<!--                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />-->
-<!--                    <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />-->
-<!--                  </svg>-->
-<!--                </button>-->
-<!--                <button id="regenerate-suggestions-btn" class="p-2 bg-white text-black rounded-full hover:bg-neon-magenta hover:text-white transition-colors" title="Generate AI Suggestions">-->
-<!--                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 regenerate-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">-->
-<!--                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3 L4 14h7v7 l9-11h-7z" />-->
-<!--                  </svg>-->
-<!--                </button>-->
-<!--              </div>-->
-<!--              <div class="flex items-center bg-zinc-900 rounded border border-zinc-700 rounded-lg p-1">-->
-<!--                <textarea id="messageInput" placeholder="Type a message..." class="flex-1 bg-transparent text-white text-sm px-3 py-2 focus:outline-none" rows="1" aria-label="Type a message"></textarea>-->
-<!--                <button id="sendMessageBtn" class="ml-2 bg-white text-black font-bold px-4 py-2 rounded-lg hover:bg-neon-magenta hover:text-white transition-colors duration-200 flex items-center justify-center">-->
-<!--                  <span class="btn-text">Send</span>-->
-<!--                </button>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </section>-->
-<!--    </main>-->
-<!--  </div>-->
-
-<!--  &lt;!&ndash; AI Slider &ndash;&gt;-->
-<!--  <div id="aiSlider" class="ai-slider flex flex-col fixed top-0 right-0 h-full w-full sm:w-96 bg-zinc-900 shadow-xl z-50 translate-x-full transition-transform duration-300">-->
-<!--    <div class="p-4 border-b border-zinc-700 flex-shrink-0">-->
-<!--      <div class="flex justify-between items-center">-->
-<!--        <h2 class="text-xl font-bold text-neon-cyan">AI Assistant</h2>-->
-<!--        <div class="flex items-center gap-2">-->
-<!--          <button id="closeSliderBtn" class="text-gray-400 text-2xl hover:text-white" aria-label="Close AI Slider">×</button>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--      <div class="mt-4 border-b border-zinc-700">-->
-<!--        <nav class="flex -mb-px space-x-6">-->
-<!--          <button data-tab="controls" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-neon-cyan text-neon-cyan">AI Controls</button>-->
-<!--          <button data-tab="summary" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-300">Summary</button>-->
-<!--        </nav>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--    <div class="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 rounded">-->
-<!--      <div id="tab-content-controls" class="tab-content">-->
-<!--        <div class="mb-6">-->
-<!--          <label for="ai-persona" class="block text-sm font-medium text-gray-300 mb-2">AI Persona</label>-->
-<!--          <textarea id="ai-persona" rows="3" class="w-full p-2 text-sm bg-zinc-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-cyan" placeholder="e.g., Be friendly and professional.">Be polite and helpful. Acknowledge messages and inform them I will reply soon.</textarea>-->
-<!--        </div>-->
-<!--        <div class="mb-6">-->
-<!--          <h4 class="font-semibold mb-3 text-white">Conversational Rules</h4>-->
-<!--          <div class="space-y-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 rounded">-->
-<!--            <div class="p-3 bg-zinc-800 rounded-lg">-->
-<!--              <p class="text-xs text-gray-400">WHEN a message is from "Grandma" AND asks "where are you"...</p>-->
-<!--              <div class="flex items-center gap-2">-->
-<!--                <p class="ai-reply-text text-sm text-neon-cyan mt-1 flex-1">AI REPLIES: "Just at home relaxing, Grandma! Hope you're having a good day. I have to run but I'll call you later!"</p>-->
-<!--                <button class="regenerate-btn p-1 bg-white text-black rounded-full hover:bg-neon-magenta hover:text-white">-->
-<!--                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 regenerate-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">-->
-<!--                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3 L4 14h7v7 l9-11h-7z" />-->
-<!--                  </svg>-->
-<!--                </button>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="p-3 bg-zinc-800 rounded-lg">-->
-<!--              <p class="text-xs text-gray-400">WHEN a message contains "urgent" OR "ASAP"...</p>-->
-<!--              <div class="flex items-center gap-2">-->
-<!--                <p class="ai-reply-text text-neon-cyan text-sm mt-1 flex-1">AI REPLIES: "I've seen your urgent message and will get back to you as soon as possible."</p>-->
-<!--                <button class="regenerate-btn p-1 bg-white text-black rounded-full hover:bg-neon-magenta hover:text-white">-->
-<!--                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 regenerate-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">-->
-<!--                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3 L4 14h7v7 l9-11h-7z" />-->
-<!--                  </svg>-->
-<!--                </button>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <button class="w-full mt-6 py-2 px-4 border-2 border-dashed border-neon-cyan text-white font-medium rounded-lg hover:bg-neon-magenta hover:text-white transition duration-300 flex justify-center items-center">-->
-<!--            Add Rule-->
-<!--          </button>-->
-<!--        </div>-->
-<!--        <div class="p-4 bg-zinc-800 rounded-lg mt-8">-->
-<!--          <div class="flex items-center justify-between">-->
-<!--            <h4 class="font-semibold text-white">Enable AI Auto-Reply</h4>-->
-<!--            <label class="flex items-center cursor-pointer">-->
-<!--              <div class="relative">-->
-<!--                <input type="checkbox" class="sr-only" checked>-->
-<!--                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>-->
-<!--                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform translate-x-6"></div>-->
-<!--              </div>-->
-<!--            </label>-->
-<!--          </div>-->
-<!--          <p class="text-sm text-gray-400 mt-2">Allow AI to send replies based on your rules.</p>-->
-<!--        </div>-->
-<!--        <div class="p-6 border-t border-zinc-700 flex-shrink-0">-->
-<!--          <button id="save-changes-btn" class="w-full py-3 px-6 bg-white text-black font-bold text-lg rounded-lg hover:bg-neon-magenta hover:text-white transition-all">Save Changes</button>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--      <div id="tab-content-summary" class="tab-content hidden">-->
-<!--        <div class="mb-6">-->
-<!--          <h3 class="font-semibold text-white mb-2">Conversation Summary</h3>-->
-<!--          <div class="relative bg-zinc-800 p-3 rounded-lg">-->
-<!--            <p id="summary-text" class="text-gray-300 text-sm opacity-0 transition-opacity duration-300">Select a conversation to view its summary.</p>-->
-<!--            <div id="summary-loader" class="hidden absolute inset-0 flex items-center justify-center">-->
-<!--              <svg class="w-5 h-5 animate-spin text-neon-cyan" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">-->
-<!--                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>-->
-<!--                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>-->
-<!--              </svg>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-
-<!--  &lt;!&ndash; Add Contact Modal &ndash;&gt;-->
-<!--  <div id="addContactModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">-->
-<!--    <div class="bg-zinc-900 p-6 rounded-xl w-full max-w-md border border-zinc-800">-->
-<!--      <h3 class="text-lg font-semibold text-neon-cyan mb-4">Add New Contact</h3>-->
-<!--      <form id="addContactForm" action="/add_contact" method="POST">-->
-<!--        <div class="mb-4">-->
-<!--          <label class="block text-xs text-zinc-300 mb-1" for="contactName">Alias</label>-->
-<!--          <input type="text" id="contactName" name="alias" class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required />-->
-<!--          <p id="contactNameError" class="error-message text-red-400 text-xs mt-1 hidden"></p>-->
-<!--        </div>-->
-<!--        <div class="mb-4">-->
-<!--          <label class="block text-xs text-zinc-300 mb-1" for="contactPhone">Label</label>-->
-<!--          <input type="text" id="contactLabel" name="label" class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" placeholder="e.g., Friend" />-->
-<!--          <p id="contactLabelError" class="error-message text-red-400 text-xs mt-1 hidden"></p>-->
-<!--        </div>-->
-<!--        <div class="mb-6">-->
-<!--          <label class="block text-xs text-zinc-300 mb-1" for="contactPhone">Phone Number</label>-->
-<!--          <input type="tel" id="contactPhone" name="phone_number" class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required placeholder="e.g., +15551234567" />-->
-<!--          <p id="contactPhoneError" class="error-message text-red-400 text-xs mt-1 hidden"></p>-->
-<!--        </div>-->
-<!--        <div class="flex justify-end gap-3">-->
-<!--          <button type="button" onclick="closeModal('addContactModal')" class="bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-zinc-600">Cancel</button>-->
-<!--          <button id="addContactBtn" type="submit" class="bg-white text-black font-semibold px-4 py-2 rounded-lg text-sm hover:bg-neon-magenta hover:text-white">-->
-<!--            <span class="btn-text">Add Contact</span>-->
-<!--            <svg class="btn-loader hidden w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">-->
-<!--              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>-->
-<!--              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>-->
-<!--            </svg>-->
-<!--          </button>-->
-<!--        </div>-->
-<!--      </form>-->
-<!--    </div>-->
-<!--  </div>-->
-
-<!--  &lt;!&ndash; Backdrop for Modals and Sliders &ndash;&gt;-->
-<!--  <div id="backdrop" class="backdrop hidden"></div>-->
-
-<!--  <script>-->
-<!--    window.conversations = {{ conversations_json | safe }};-->
-<!--    window.groupedMessages = {{ grouped_messages_json | safe }};-->
-<!--    window.selectedPhoneId = '{{ selected_phone_id }}';-->
-<!--  </script>-->
-<!--  <script src="{{ url_for('static', filename='js/inbox.js') }}"></script>-->
-<!--  <script>-->
-<!--      window.addEventListener('DOMContentLoaded', () => {-->
-<!--          document.body.classList.add('loaded');-->
-<!--      });-->
-<!--  </script>-->
-
-<!--</body>-->
-<!--</html>-->
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Comsierge | Inbox</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/inbox.css') }}">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | SMS Scheduling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        button[type="submit"] {
+            background-color: #ffffff;
+            color: #000000;
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
 </head>
-<body class="antialiased bg-[#0a0a0a] text-white font-['Inter']">
-  <!-- Notification Banner -->
-  <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>
+<body class="antialiased bg-black text-white min-h-screen">
+    <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>
 
-  <!-- Header -->
-  {% set header_title = 'Inbox' %}
-  {% include 'header.html' %}
+    {% include 'menu.html' %}
+    {% set header_title = 'SMS Scheduling' %}
+    {% include 'header.html' %}
 
-  <!-- Main Content Wrapper -->
-  <div class="content-wrapper w-full">
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">
-      <section id="inbox" class="content-section py-8 active">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-white">Inbox</h2>
-            <p class="text-xs text-zinc-400 mt-1">{{ phone_number if phone_number else 'No phone number selected' }}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="add-contact-btn" onclick="showModal('addContactModal')" class="bg-white text-black text-xs px-3 py-1.5 rounded-lg hover:bg-neon-magenta hover:text-white transition-colors duration-200">Add Contact</button>
-            <button id="refresh-inbox" class="text-white hover:text-neon-cyan transition-colors duration-200" title="Refresh Inbox">
-              <svg id="refresh-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="chat-container flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-150px)]">
-          <div id="contact-list-container" class="w-full lg:w-1/3 bg-[#1a1a1d] p-4 flex flex-col">
-            <div class="flex justify-between items-center mb-4 flex-shrink-0">
-              <h2 class="text-lg font-bold text-white">Conversations</h2>
-            </div>
-            <div class="relative mb-4 flex-shrink-0">
-              <input type="text" id="searchInput" placeholder="Search..." class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-1.5 pl-8 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Search conversations" onkeyup="filterConversations()" />
-              <svg class="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-            <div id="contactList" class="space-y-2 overflow-y-auto flex-1 scrollbar-hidden"></div>
-          </div>
-          <div id="conversation" class="w-full lg:w-2/3 flex flex-col h-[calc(100vh-180px)]">
-            <div id="conversation-header" class="flex flex-wrap justify-between items-center mb-4 pb-2 border-b border-zinc-800 flex-shrink-0 px-3">
-              <div class="flex items-center gap-2">
-                <button id="back-btn" class="lg:hidden mr-4 text-neon-cyan text-sm font-medium">Back</button>
-                <div>
-                  <h3 id="conversation-title" class="font-bold text-lg text-neon-cyan">Select a conversation</h3>
-                  <p id="conversation-phone" class="text-xs text-zinc-400"></p>
-                  <p id="conversation-count" class="text-xs text-zinc-400"></p>
+    <div class="content-wrapper w-full">
+        <main class="px-4 pt-16 pb-12 max-w-full">
+            <section id="sms-scheduling" class="py-8 active">
+                <div id="loader" class="flex justify-center items-center min-h-[50vh]">
+                    <svg class="animate-spin h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                    </svg>
                 </div>
-              </div>
-              <div class="flex items-center gap-1 mt-2 sm:mt-0">
-                <button id="delete-chat-btn" class="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors duration-200 hidden">Delete Chat</button>
-                <button id="ai-summary-toggle" class="bg-white text-black p-2 rounded-full hover:bg-neon-magenta hover:text-white transition-colors min-w-[36px] flex-shrink-0 z-10" title="AI Summary">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </button>
-                <button id="ai-controls-toggle" class="bg-white text-black p-2 rounded-full hover:bg-neon-magenta hover:text-white transition-colors min-w-[36px] flex-shrink-0 z-10" title="AI Controls">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37 1 .608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div id="chatMessages" class="chat-messages flex-1 space-y-4 overflow-y-auto p-4 sm:p-6 scrollbar-hidden"></div>
-            <div id="message-input-container" class="message-input-container p-4 border-t border-zinc-800 flex flex-col gap-3 flex-shrink-0">
-              <div class="flex items-center gap-1 mb-2">
-                <div id="suggestions-container" class="flex flex-wrap gap-1 flex-1 overflow-x-auto"></div>
-                <button id="rewrite-btn" class="bg-white text-black p-2 rounded-full hover:bg-neon-magenta hover:text-white transition-colors min-w-[36px] flex-shrink-0 z-10" title="Rewrite with AI">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                    <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-                <button id="regenerate-suggestions-btn" class="bg-white text-black p-2 rounded-full hover:bg-neon-magenta hover:text-white transition-colors min-w-[36px] flex-shrink-0 z-10" title="Generate AI Suggestions">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 regenerate-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3 L4 14h7v7 l9-11h-7z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="flex items-center bg-zinc-900 rounded border border-zinc-700 p-1.5">
-                <textarea id="messageInput" placeholder="Type a message..." class="flex-1 bg-transparent text-white text-sm px-3 py-2 focus:outline-none" rows="1" aria-label="Type a message"></textarea>
-                <button id="sendMessageBtn" class="ml-2 bg-white text-black font-bold px-4 py-2 rounded-lg hover:bg-neon-magenta hover:text-white transition-colors duration-200 flex items-center justify-center min-w-[80px]">
-                  <span class="btn-text">Send</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
 
-  <!-- AI Slider -->
-  <div id="aiSlider" class="ai-slider flex flex-col fixed top-0 right-0 h-full w-full sm:w-96 bg-zinc-900 shadow-xl z-50 translate-x-full transition-transform duration-300">
-    <div class="p-4 border-b border-zinc-700 flex-shrink-0">
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-neon-cyan">AI Assistant</h2>
-        <div class="flex items-center gap-2">
-          <button id="closeSliderBtn" class="text-gray-400 text-2xl hover:text-white" aria-label="Close AI Slider">×</button>
-        </div>
-      </div>
-      <div class="mt-4 border-b border-zinc-700">
-        <nav class="flex -mb-px space-x-6">
-          <button data-tab="controls" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-neon-cyan text-neon-cyan">AI Controls</button>
-          <button data-tab="summary" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-300">Summary</button>
-        </nav>
-      </div>
+                <div id="sms-content-wrapper" class="hidden">
+                    <h2 class="text-2xl font-bold mb-1">Schedule or Send SMS</h2>
+                    <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                    <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
+
+                    <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="mb-6">
+                                    {% for category, message in messages %}
+                                        <p class="text-sm text-center {{ 'text-neon-cyan' if category == 'success' else 'text-red-500' }}">{{ message }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('schedule_message_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return normalizeForm()">
+                            <div class="w-full">
+                                <label for="to_number" class="block text-xs font-medium text-zinc-400 mb-2">Phone Number</label>
+                                <input type="tel" id="to_number" name="to_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required="" oninput="addPlusSign()">
+
+                                <script>
+                                  function addPlusSign() {
+                                    var input = document.getElementById("to_number");
+                                    if (input.value && !input.value.startsWith("+")) {
+                                      input.value = "+" + input.value.replace(/[^0-9+]/g, ''); // This removes any non-numeric character except the plus sign
+                                    }
+                                  }
+                                </script>
+                                <select id="to_contact" name="to_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('to_number').value = this.value.startsWith('+') ? this.value : '+1' + this.value;">
+                                    <option value="" disabled selected>Select Contact</option>
+                                    {% for contact in contacts %}
+                                        <option value="{{ contact.phone_number }}">{{ contact.alias | title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="w-full">
+                                <label for="message_content" class="block text-xs font-medium text-zinc-400 mb-2">Message Content</label>
+                                <textarea id="message_content" name="message_content" maxlength="160" placeholder="Max 160 characters" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required></textarea>
+                            </div>
+
+                            <div class="w-full">
+                                <label for="send_type" class="block text-xs font-medium text-zinc-400 mb-2">Send Type</label>
+                                <select id="send_type" name="send_type" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="toggleScheduleFields()">
+                                    <option value="instant">Send Instantly</option>
+                                    <option value="scheduled">Schedule Message</option>
+                                </select>
+                            </div>
+
+                            <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 hidden" id="schedule_fields">
+                                <div>
+                                    <label for="schedule_date" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Date (UTC)</label>
+                                    <input type="date" id="schedule_date" name="schedule_date" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
+                                    <p class="text-xs text-zinc-500 mt-1">Enter date in UTC timezone</p>
+                                </div>
+                                <div>
+                                    <label for="schedule_time" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Time (UTC)</label>
+                                    <input type="time" id="schedule_time" name="schedule_time" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" />
+                                    <p class="text-xs text-zinc-500 mt-1">Enter time in UTC (24-hour format, e.g., 16:15 for 4:15 PM UTC)</p>
+                                </div>
+                            </div>
+
+                            <div class="w-full text-right">
+                                <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Send</button>
+                            </div>
+                        </form>
+
+                        <div class="mt-8">
+                            <h3 class="text-base font-semibold mb-4">Upcoming Scheduled SMS</h3>
+                            <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                                <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                    <thead>
+                                        <tr class="border-b border-zinc-800">
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled Time (UTC)</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pending-messages-body">
+                                        {% if pending_messages %}
+                                            {% for msg in pending_messages %}
+                                                <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
+                                                    <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
+                                                    <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
+                                                    <td class="px-4 py-3 text-xs message-timestamp">
+                                                        {{ msg.schedule_time.strftime('%b %d, %Y, %I:%M %p') if msg.schedule_time else 'Instant' }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-xs message-status text-yellow-400">
+                                                        {{ msg.status | capitalize }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-xs message-actions">
+                                                        <form method="POST" action="{{ url_for('cancel_message_route', msg_id=msg._id) }}" onsubmit="return confirm('Cancel this scheduled message?')">
+                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Cancel</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No scheduled messages.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <h3 class="text-base font-semibold mb-4">Past Messages (Last 24 Hours)</h3>
+                            <div class="overflow-x-auto rounded-lg border border-zinc-800">
+                                <table class="w-full min-w-[600px] bg-zinc-900 rounded-lg">
+                                    <thead>
+                                        <tr class="border-b border-zinc-800">
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">To</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Message</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Scheduled/Sent Time (UTC)</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Status</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="past-messages-body">
+                                        {% if past_messages %}
+                                            {% for msg in past_messages %}
+                                                <tr class="border-b border-zinc-800 last:border-none" data-message-id="{{ msg._id }}">
+                                                    <td class="px-4 py-3 text-xs">{{ msg.to_number }}</td>
+                                                    <td class="px-4 py-3 text-xs">{{ msg.content }}</td>
+                                                    <td class="px-4 py-3 text-xs message-timestamp">
+                                                        {{ (msg.sent_at or msg.schedule_time or msg.updated_at).strftime('%b %d, %Y, %I:%M %p') }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-xs message-status {{ 'text-green-400' if msg.status == 'sent' else 'text-red-500' if msg.status == 'failed' else 'text-gray-400' }}">
+                                                        {{ msg.status | capitalize }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-xs message-actions">
+                                                        {% if msg.error %}
+                                                            Error: {{ msg.error }}
+                                                        {% elif msg.message_id %}
+                                                            Message ID: {{ msg.message_id }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="5" class="px-4 py-3 text-center text-xs text-zinc-500">No past messages in the last 24 hours.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-    <div class="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 rounded">
-      <div id="tab-content-controls" class="tab-content">
-        <div class="mb-6">
-          <label for="ai-persona" class="block text-sm font-medium text-gray-300 mb-2">AI Persona</label>
-          <textarea id="ai-persona" rows="3" class="w-full p-2 text-sm bg-zinc-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-neon-cyan" placeholder="e.g., Be friendly and professional.">Be polite and helpful. Acknowledge messages and inform them I will reply soon.</textarea>
-        </div>
-        <div class="mb-6">
-          <h4 class="font-semibold mb-3 text-white">Conversational Rules</h4>
-          <div class="space-y-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 rounded">
-            <div class="p-3 bg-zinc-800 rounded-lg">
-              <p class="text-xs text-gray-400">WHEN a message is from "Grandma" AND asks "where are you"...</p>
-              <div class="flex items-center gap-2">
-                <p class="ai-reply-text text-sm text-neon-cyan mt-1 flex-1">AI REPLIES: "Just at home relaxing, Grandma! Hope you're having a good day. I have to run but I'll call you later!"</p>
-                <button class="regenerate-btn p-1 bg-white text-black rounded-full hover:bg-neon-magenta hover:text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 regenerate-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3 L4 14h7v7 l9-11h-7z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="p-3 bg-zinc-800 rounded-lg">
-              <p class="text-xs text-gray-400">WHEN a message contains "urgent" OR "ASAP"...</p>
-              <div class="flex items-center gap-2">
-                <p class="ai-reply-text text-neon-cyan text-sm mt-1 flex-1">AI REPLIES: "I've seen your urgent message and will get back to you as soon as possible."</p>
-                <button class="regenerate-btn p-1 bg-white text-black rounded-full hover:bg-neon-magenta hover:text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 regenerate-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3 L4 14h7v7 l9-11h-7z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          <button class="w-full mt-6 py-2 px-4 border-2 border-dashed border-neon-cyan text-white font-medium rounded-lg hover:bg-neon-magenta hover:text-white transition duration-300 flex justify-center items-center">
-            Add Rule
-          </button>
-        </div>
-        <div class="p-4 bg-zinc-800 rounded-lg mt-8">
-          <div class="flex items-center justify-between">
-            <h4 class="font-semibold text-white">Enable AI Auto-Reply</h4>
-            <label class="flex items-center cursor-pointer">
-              <div class="relative">
-                <input type="checkbox" class="sr-only" checked>
-                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform translate-x-6"></div>
-              </div>
-            </label>
-          </div>
-          <p class="text-sm text-gray-400 mt-2">Allow AI to send replies based on your rules.</p>
-        </div>
-        <div class="p-6 border-t border-zinc-700 flex-shrink-0">
-          <button id="save-changes-btn" class="w-full py-3 px-6 bg-white text-black font-bold text-lg rounded-lg hover:bg-neon-magenta hover:text-white transition-all">Save Changes</button>
-        </div>
-      </div>
-      <div id="tab-content-summary" class="tab-content hidden">
-        <div class="mb-6">
-          <h3 class="font-semibold text-white mb-2">Conversation Summary</h3>
-          <div class="relative bg-zinc-800 p-3 rounded-lg">
-            <p id="summary-text" class="text-gray-300 text-sm opacity-0 transition-opacity duration-300">Select a conversation to view its summary.</p>
-            <div id="summary-loader" class="hidden absolute inset-0 flex items-center justify-center">
-              <svg class="w-5 h-5 animate-spin text-neon-cyan" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Add Contact Modal -->
-  <div id="addContactModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-    <div class="bg-zinc-900 p-6 rounded-xl w-full max-w-md border border-zinc-800">
-      <h3 class="text-lg font-semibold text-neon-cyan mb-4">Add New Contact</h3>
-      <form id="addContactForm" action="/add_contact" method="POST">
-        <div class="mb-4">
-          <label class="block text-xs text-zinc-300 mb-1" for="contactName">Alias</label>
-          <input type="text" id="contactName" name="alias" class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required />
-          <p id="contactNameError" class="error-message text-red-400 text-xs mt-1 hidden"></p>
-        </div>
-        <div class="mb-4">
-          <label class="block text-xs text-zinc-300 mb-1" for="contactPhone">Label</label>
-          <input type="text" id="contactLabel" name="label" class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" placeholder="e.g., Friend" />
-          <p id="contactLabelError" class="error-message text-red-400 text-xs mt-1 hidden"></p>
-        </div>
-        <div class="mb-6">
-          <label class="block text-xs text-zinc-300 mb-1" for="contactPhone">Phone Number</label>
-          <input type="tel" id="contactPhone" name="phone_number" class="w-full bg-zinc-800 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required placeholder="e.g., +15551234567" />
-          <p id="contactPhoneError" class="error-message text-red-400 text-xs mt-1 hidden"></p>
-        </div>
-        <div class="flex justify-end gap-3">
-          <button type="button" onclick="closeModal('addContactModal')" class="bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-zinc-600">Cancel</button>
-          <button id="addContactBtn" type="submit" class="bg-white text-black font-semibold px-4 py-2 rounded-lg text-sm hover:bg-neon-magenta hover:text-white">
-            <span class="btn-text">Add Contact</span>
-            <svg class="btn-loader hidden w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
-            </svg>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            // Hide loader and show the main content
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('sms-content-wrapper').classList.remove('hidden');
 
-  <!-- Backdrop for Modals and Sliders -->
-  <div id="backdrop" class="backdrop hidden"></div>
+            // Initialize other page functions
+            toggleScheduleFields();
+            updateUTCTime();
+            setupSocketIO();
+            prefillFormFromURL();
+        });
 
-  <script>
-    window.conversations = {{ conversations_json | safe }};
-    window.groupedMessages = {{ grouped_messages_json | safe }};
-    window.selectedPhoneId = '{{ selected_phone_id }}';
-  </script>
-  <script src="{{ url_for('static', filename='js/inbox.js') }}"></script>
-  <script>
-      window.addEventListener('DOMContentLoaded', () => {
-          document.body.classList.add('loaded');
-      });
-  </script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        function normalizePhoneNumber(value) {
+            if (!value) return '';
+            return value.startsWith('+') ? value : '+1' + value.replace(/^1/, '');
+        }
+
+        function normalizeForm() {
+            const toNumberInput = document.getElementById('to_number');
+            toNumberInput.value = normalizePhoneNumber(toNumberInput.value);
+            return true;
+        }
+
+        function toggleScheduleFields() {
+            const sendType = document.getElementById('send_type').value;
+            const scheduleFields = document.getElementById('schedule_fields');
+            const dateInput = document.getElementById('schedule_date');
+            const timeInput = document.getElementById('schedule_time');
+            if (sendType === 'instant') {
+                scheduleFields.classList.add('hidden');
+                dateInput.disabled = true;
+                timeInput.disabled = true;
+                dateInput.value = '';
+                timeInput.value = '';
+            } else {
+                scheduleFields.classList.remove('hidden');
+                dateInput.disabled = false;
+                timeInput.disabled = false;
+            }
+        }
+
+        function updateUTCTime() {
+            const utcTimeElement = document.getElementById('utc-time');
+            const now = new Date();
+            const utcString = now.toUTCString().replace('GMT', 'UTC');
+            utcTimeElement.textContent = utcString;
+            setTimeout(updateUTCTime, 1000);
+        }
+
+        function prefillFormFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const toNumber = urlParams.get('to_number');
+
+            if (toNumber) {
+                // Remove unwanted spaces and ensure it's clean
+                const cleanedNumber = toNumber.trim().replace(/\s+/g, '').replace(/^(\+?\s*)/, '+');
+
+                // Ensure the phone number starts with a '+' (if not already)
+                const formattedNumber = cleanedNumber.startsWith('+') ? cleanedNumber : '+' + cleanedNumber;
+
+                const toNumberInput = document.getElementById('to_number');
+                const toContactSelect = document.getElementById('to_contact');
+
+                // Set the input field with the formatted number
+                toNumberInput.value = formattedNumber;
+
+                // Check if the select option matches and select it
+                Array.from(toContactSelect.options).forEach(option => {
+                    if (option.value === formattedNumber) {
+                        option.selected = true;
+                    }
+                });
+            }
+        }
+
+        function setupSocketIO() {
+            const socket = io();
+            const selectedPhoneId = "{{ session.selected_phone_id }}";
+
+            if (selectedPhoneId) {
+                socket.emit('join_room', `user_${selectedPhoneId}`);
+            }
+
+            socket.on('message_status_update', function(data) {
+                console.log('Received status update:', data);
+                const pendingRow = document.querySelector(`#pending-messages-body tr[data-message-id="${data.message_id}"]`);
+                const pastRow = document.querySelector(`#past-messages-body tr[data-message-id="${data.message_id}"]`);
+
+                if (pendingRow) {
+                    const statusCell = pendingRow.querySelector('.message-status');
+                    if (statusCell) {
+                        statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                        statusCell.className = 'px-4 py-3 text-xs message-status ' +
+                            (data.status === 'sent' ? 'text-green-400' :
+                             data.status === 'failed' ? 'text-red-500' :
+                             data.status === 'cancelled' ? 'text-gray-400' : 'text-yellow-400');
+                    }
+
+                    const timestampCell = pendingRow.querySelector('.message-timestamp');
+                    if (timestampCell && data.sent_at) {
+                        const sentDate = new Date(data.sent_at);
+                        timestampCell.textContent = sentDate.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+
+                    const actionCell = pendingRow.querySelector('.message-actions');
+                    if (actionCell && data.status !== 'pending') {
+                        actionCell.innerHTML = data.status === 'sent' ?
+                            'Message ID: ' + (data.message_id || 'N/A') :
+                            data.error ? 'Error: ' + data.error : '';
+                    }
+
+                    if (data.status !== 'pending') {
+                        const pastMessagesBody = document.getElementById('past-messages-body');
+                        if (pastMessagesBody) {
+                            const newRow = pendingRow.cloneNode(true);
+                            pendingRow.remove();
+                            if (pastMessagesBody.firstChild) {
+                                pastMessagesBody.insertBefore(newRow, pastMessagesBody.firstChild);
+                            } else {
+                                pastMessagesBody.appendChild(newRow);
+                            }
+                            const emptyRow = pastMessagesBody.querySelector('tr td[colspan="5"]');
+                            if (emptyRow && pastMessagesBody.children.length > 1) {
+                                emptyRow.parentNode.remove();
+                            }
+                        }
+                    }
+                } else if (pastRow) {
+                    const statusCell = pastRow.querySelector('.message-status');
+                    if (statusCell) {
+                        statusCell.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                        statusCell.className = 'px-4 py-3 text-xs message-status ' +
+                            (data.status === 'sent' ? 'text-green-400' :
+                             data.status === 'failed' ? 'text-red-500' :
+                             'text-gray-400');
+                    }
+
+                    const actionCell = pastRow.querySelector('.message-actions');
+                    if (actionCell) {
+                        actionCell.innerHTML = data.status === 'sent' ?
+                            'Message ID: ' + (data.message_id || 'N/A') :
+                            data.error ? 'Error: ' + data.error : '';
+                    }
+                }
+            });
+        }
+
+        document.getElementById('send_type').addEventListener('change', toggleScheduleFields);
+    </script>
 </body>
 </html>
