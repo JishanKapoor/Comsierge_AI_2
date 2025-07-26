@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -59,12 +58,11 @@
                         <div class="w-full">
                             <label for="to_number" class="block text-xs font-medium text-zinc-400 mb-2">Phone Number</label>
                             <input type="tel" id="to_number" name="to_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required="" oninput="addPlusSign()">
-
                             <script>
                               function addPlusSign() {
                                 var input = document.getElementById("to_number");
                                 if (input.value && !input.value.startsWith("+")) {
-                                  input.value = "+" + input.value.replace(/[^0-9+]/g, ''); // This removes any non-numeric character except the plus sign
+                                  input.value = "+" + input.value.replace(/[^0-9+]/g, '');
                                 }
                               }
                             </script>
@@ -227,6 +225,23 @@
         function normalizeForm() {
             const toNumberInput = document.getElementById('to_number');
             toNumberInput.value = normalizePhoneNumber(toNumberInput.value);
+            const sendType = document.getElementById('send_type').value;
+            if (sendType === 'scheduled') {
+                const scheduleDate = document.getElementById('schedule_date').value;
+                const scheduleTime = document.getElementById('schedule_time').value;
+                if (!scheduleDate || !scheduleTime) {
+                    alert('Schedule date and time are required.');
+                    return false;
+                }
+                // Combine date and time into a UTC Date object
+                const scheduleDateTime = new Date(`${scheduleDate}T${scheduleTime}:00Z`);
+                const now = new Date();
+                const minTime = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes in the future
+                if (scheduleDateTime <= minTime) {
+                    alert('Schedule time must be at least 2 minutes in the future (UTC).');
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -259,21 +274,12 @@
         function prefillFormFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const toNumber = urlParams.get('to_number');
-
             if (toNumber) {
-                // Remove unwanted spaces and ensure it's clean
                 const cleanedNumber = toNumber.trim().replace(/\s+/g, '').replace(/^(\+?\s*)/, '+');
-
-                // Ensure the phone number starts with a '+' (if not already)
                 const formattedNumber = cleanedNumber.startsWith('+') ? cleanedNumber : '+' + cleanedNumber;
-
                 const toNumberInput = document.getElementById('to_number');
                 const toContactSelect = document.getElementById('to_contact');
-
-                // Set the input field with the formatted number
                 toNumberInput.value = formattedNumber;
-
-                // Check if the select option matches and select it
                 Array.from(toContactSelect.options).forEach(option => {
                     if (option.value === formattedNumber) {
                         option.selected = true;
@@ -285,16 +291,13 @@
         function setupSocketIO() {
             const socket = io();
             const selectedPhoneId = "{{ session.selected_phone_id }}";
-
             if (selectedPhoneId) {
                 socket.emit('join_room', `user_${selectedPhoneId}`);
             }
-
             socket.on('message_status_update', function(data) {
                 console.log('Received status update:', data);
                 const pendingRow = document.querySelector(`#pending-messages-body tr[data-message-id="${data.message_id}"]`);
                 const pastRow = document.querySelector(`#past-messages-body tr[data-message-id="${data.message_id}"]`);
-
                 if (pendingRow) {
                     const statusCell = pendingRow.querySelector('.message-status');
                     if (statusCell) {
@@ -304,7 +307,6 @@
                              data.status === 'failed' ? 'text-red-500' :
                              data.status === 'cancelled' ? 'text-gray-400' : 'text-yellow-400');
                     }
-
                     const timestampCell = pendingRow.querySelector('.message-timestamp');
                     if (timestampCell && data.sent_at) {
                         const sentDate = new Date(data.sent_at);
@@ -316,14 +318,12 @@
                             minute: '2-digit'
                         });
                     }
-
                     const actionCell = pendingRow.querySelector('.message-actions');
                     if (actionCell && data.status !== 'pending') {
                         actionCell.innerHTML = data.status === 'sent' ?
                             'Message ID: ' + (data.message_id || 'N/A') :
                             data.error ? 'Error: ' + data.error : '';
                     }
-
                     if (data.status !== 'pending') {
                         const pastMessagesBody = document.getElementById('past-messages-body');
                         if (pastMessagesBody) {
@@ -349,7 +349,6 @@
                              data.status === 'failed' ? 'text-red-500' :
                              'text-gray-400');
                     }
-
                     const actionCell = pastRow.querySelector('.message-actions');
                     if (actionCell) {
                         actionCell.innerHTML = data.status === 'sent' ?
