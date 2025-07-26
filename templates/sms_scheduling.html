@@ -236,9 +236,9 @@
                 // Combine date and time into a UTC Date object
                 const scheduleDateTime = new Date(`${scheduleDate}T${scheduleTime}:00Z`);
                 const now = new Date();
-                const minTime = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes in the future
+                const minTime = new Date(now.getTime() + 5 * 60 * 1000); 
                 if (scheduleDateTime <= minTime) {
-                    alert('Schedule time must be at least 2 minutes in the future (UTC).');
+                    alert('Schedule time must be at least 5 minutes in the future (UTC).');
                     return false;
                 }
             }
