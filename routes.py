@@ -325,7 +325,7 @@ def schedule_message():
             schedule_datetime = datetime.strptime(f"{schedule_date} {schedule_time}", '%Y-%m-%d %H:%M')
             schedule_datetime = pytz.UTC.localize(schedule_datetime)
             current_time = datetime.now(pytz.UTC)
-            min_schedule_time = current_time + timedelta(minutes=2)  # 2-minute buffer
+            min_schedule_time = current_time + timedelta(minutes=5)  # 5-minute buffer
             logger.debug(f"schedule_datetime: {schedule_datetime}, current_time: {current_time}, min_schedule_time: {min_schedule_time}")
 
             if schedule_datetime <= min_schedule_time:
