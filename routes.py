@@ -325,10 +325,11 @@ def schedule_message():
             schedule_datetime = datetime.strptime(f"{schedule_date} {schedule_time}", '%Y-%m-%d %H:%M')
             schedule_datetime = pytz.UTC.localize(schedule_datetime)
             current_time = datetime.now(pytz.UTC)
-            logger.debug(f"schedule_datetime: {schedule_datetime}, current_time: {current_time}")
+            min_schedule_time = current_time + timedelta(minutes=2)  # 2-minute buffer
+            logger.debug(f"schedule_datetime: {schedule_datetime}, current_time: {current_time}, min_schedule_time: {min_schedule_time}")
 
-            if schedule_datetime <= current_time:
-                flash('Schedule time must be in the future.', 'error')
+            if schedule_datetime <= min_schedule_time:
+                flash('Schedule time must be at least 2 minutes in the future.', 'error')
                 return redirect(url_for('sms_scheduling_route'))
 
             msg_data['schedule_time'] = schedule_datetime
