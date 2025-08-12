@@ -57,7 +57,6 @@
         .content-section {
             flex-grow: 1;
         }
-
         /* Rotation animation for refresh icon */
         .rotate {
             animation: spin 0.5s linear;
@@ -68,17 +67,31 @@
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased bg-neutral-950 text-zinc-100" style="font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'">
+    <!-- Background Accents -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+      <div class="absolute inset-0" style="
+        background:
+        radial-gradient(800px 400px at 10% 10%, rgba(34,211,238,0.14), transparent 60%),
+        radial-gradient(700px 380px at 90% 20%, rgba(217,70,239,0.12), transparent 60%),
+        radial-gradient(900px 600px at 50% 90%, rgba(34,211,238,0.08), transparent 60%);
+      "></div>
+      <div class="absolute inset-0 opacity-[0.035]" style="
+        background-image: linear-gradient(to right, #ffffff0f 1px, transparent 1px), linear-gradient(to bottom, #ffffff0f 1px, transparent 1px);
+        background-size: 48px 48px;
+      "></div>
+    </div>
+
     <!-- Notification Banner -->
-    <div id="notification-banner" class="notification-banner hidden" role="alert"></div>
+    <div id="notification-banner" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] sm:w-[520px] rounded-lg border border-white/10 bg-neutral-900/80 backdrop-blur px-4 py-2 text-sm text-zinc-200 shadow hidden" role="alert"></div>
 
     <!-- Particle Background -->
-    <svg class="particles hidden md:block" aria-hidden="true">
-        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;"></circle>
-        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;"></circle>
-        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;"></rect>
-        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;"></circle>
-        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;"></rect>
+    <svg class="hidden md:block pointer-events-none fixed inset-0 -z-10 opacity-30" aria-hidden="true">
+      <circle cx="5%" cy="10%" r="4" style="fill: rgba(34,211,238,0.35);"></circle>
+      <circle cx="85%" cy="15%" r="3" style="fill: rgba(217,70,239,0.35);"></circle>
+      <rect x="65%" y="60%" width="5" height="5" style="fill: rgba(255,255,255,0.25);"></rect>
+      <circle cx="20%" cy="80%" r="5" style="fill: rgba(217,70,239,0.35);"></circle>
+      <rect x="10%" y="50%" width="4" height="4" style="fill: rgba(255,255,255,0.25);"></rect>
     </svg>
 
     <!-- Menu -->
@@ -117,7 +130,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="bg-[#101010] rounded-xl p-4 border border-zinc-800">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
                         <h3 class="text-base font-semibold text-white">Upcoming Events</h3>
@@ -137,7 +149,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div id="event-list" class="space-y-3">
                         {% if events %}
                             {% for event in events %}
@@ -182,19 +193,16 @@
             </section>
         </main>
     </div>
-
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('loaded');
         });
-
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.toggle('active');
             overlay.classList.toggle('hidden');
         }
-
         document.getElementById('refresh-events').addEventListener('click', function () {
             const icon = document.getElementById('refresh-events-icon');
             icon.classList.add('rotate');
