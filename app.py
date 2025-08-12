@@ -12,7 +12,7 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from datetime import datetime
 import pytz
-from routes import sms_forwarding, add_forwarding_rule, stop_forwarding_rule, sms_scheduling, schedule_message, cancel_message, add_contact, delete_chat, scheduler
+from routes import sms_forwarding, add_forwarding_rule, stop_forwarding_rule, sms_scheduling, schedule_message, cancel_message, add_contact, delete_chat, scheduler, delete_contact
 from admin import unassign_phone_number, delete_user
 import logging
 import re
@@ -686,34 +686,33 @@ def contacts():
 def add_contact_route():
     selected_phone_id = session.get('selected_phone_id')
     if not selected_phone_id:
-        return jsonify({'error': 'No phone number selected'}), 400
-
+        flash('No phone number selected.', 'error')
+        return redirect(url_for('contacts'))
     alias = request.form.get('alias')
     phone_number = request.form.get('phone_number')
     label = request.form.get('label')
-
     if not alias or not phone_number:
-        return jsonify({'error': 'Alias and phone number are required'}), 400
-
+        flash('Alias and phone number are required.', 'error')
+        return redirect(url_for('contacts'))
     phone_number_pattern = re.compile(r'^\+\d{10,15}$')
     if not phone_number_pattern.match(phone_number):
-        return jsonify({'error': 'Invalid phone number format. Use + followed by 10-15 digits.'}), 400
-
+        flash('Invalid phone number format. Use + followed by 10-15 digits.', 'error')
+        return redirect(url_for('contacts'))
     phone_doc = store.db.phone_numbers.find_one({'_id': ObjectId(selected_phone_id), 'active': True})
     if not phone_doc:
-        return jsonify({'error': 'No active phone number found'}), 400
-
+        flash('No active phone number found.', 'error')
+        return redirect(url_for('contacts'))
     if phone_number == phone_doc['number']:
-        return jsonify({'error': 'Cannot add a contact with the same number as the selected phone'}), 400
-
+        flash('Cannot add a contact with the same number as the selected phone.', 'error')
+        return redirect(url_for('contacts'))
     # Check for duplicate alias
     if store.db.contacts.find_one({'phone_id': ObjectId(selected_phone_id), 'alias': alias}):
-        return jsonify({'error': 'Contact with this alias already exists'}), 400
-
+        flash('Contact with this alias already exists.', 'error')
+        return redirect(url_for('contacts'))
     # Check for duplicate phone number
     if store.db.contacts.find_one({'phone_id': ObjectId(selected_phone_id), 'phone_number': phone_number}):
-        return jsonify({'error': 'Contact with this phone number already exists'}), 400
-
+        flash('Contact with this phone number already exists.', 'error')
+        return redirect(url_for('contacts'))
     contact_data = {
         'phone_id': ObjectId(selected_phone_id),
         'alias': alias,
@@ -721,7 +720,6 @@ def add_contact_route():
         'label': label or 'None',
         'created_at': datetime.now(pytz.UTC)
     }
-
     try:
         store.db.contacts.insert_one(contact_data)
         # Emit real-time update for new contact
@@ -730,10 +728,12 @@ def add_contact_route():
             'label': label or 'None',
             'alias': alias
         }, room=f"user_{selected_phone_id}")
-        return jsonify({'success': True}), 200
+        flash('Contact added successfully.', 'success')
+        return redirect(url_for('contacts'))
     except Exception as e:
         logger.error(f"Error adding contact: {str(e)}", exc_info=True)
-        return jsonify({'error': f'Error adding contact: {str(e)}'}), 500
+        flash(f'Error adding contact: {str(e)}', 'error')
+        return redirect(url_for('contacts'))
 
 @app.route('/delete_contact/<phone_number>', methods=['POST'])
 @login_required
