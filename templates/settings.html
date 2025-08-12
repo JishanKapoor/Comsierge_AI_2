@@ -79,31 +79,48 @@
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased bg-neutral-950 text-zinc-100" style="font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'">
+    <!-- Background Accents -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+      <div class="absolute inset-0" style="
+        background:
+        radial-gradient(800px 400px at 10% 10%, rgba(34,211,238,0.14), transparent 60%),
+        radial-gradient(700px 380px at 90% 20%, rgba(217,70,239,0.12), transparent 60%),
+        radial-gradient(900px 600px at 50% 90%, rgba(34,211,238,0.08), transparent 60%);
+      "></div>
+      <div class="absolute inset-0 opacity-[0.035]" style="
+        background-image: linear-gradient(to right, #ffffff0f 1px, transparent 1px), linear-gradient(to bottom, #ffffff0f 1px, transparent 1px);
+        background-size: 48px 48px;
+      "></div>
+    </div>
+
     <!-- Notification Banner -->
-    <div id="notification-banner" class="notification-banner" role="alert"></div>
+    <div id="notification-banner" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] sm:w-[520px] rounded-lg border border-white/10 bg-neutral-900/80 backdrop-blur px-4 py-2 text-sm text-zinc-200 shadow hidden" role="alert"></div>
 
     <!-- Particle Background -->
-    <svg class="particles hidden md:block" aria-hidden="true">
-        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;" />
-        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;" />
-        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;" />
-        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;" />
-        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;" />
+    <svg class="hidden md:block pointer-events-none fixed inset-0 -z-10 opacity-30" aria-hidden="true">
+      <circle cx="5%" cy="10%" r="4" style="fill: rgba(34,211,238,0.35);"></circle>
+      <circle cx="85%" cy="15%" r="3" style="fill: rgba(217,70,239,0.35);"></circle>
+      <rect x="65%" y="60%" width="5" height="5" style="fill: rgba(255,255,255,0.25);"></rect>
+      <circle cx="20%" cy="80%" r="5" style="fill: rgba(217,70,239,0.35);"></circle>
+      <rect x="10%" y="50%" width="4" height="4" style="fill: rgba(255,255,255,0.25);"></rect>
     </svg>
 
     <!-- Menu -->
     {% include 'menu.html' %}
-
     <!-- Header -->
     {% block header_title %}Settings{% endblock %}
     {% include 'header.html' %}
-
     <!-- Main Content Wrapper -->
     <div class="content-wrapper w-full">
         <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">
             <section id="settings" class="content-section py-8">
-                <h2 class="text-xl sm:text-2xl font-bold text-white mb-6">Settings</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">Settings</h2>
+                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                    </div>
+                </div>
                 <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800">
                     <h3 class="text-base font-semibold text-white mb-4">General Preferences</h3>
                     <div class="space-y-6">
@@ -324,7 +341,6 @@
             </section>
         </main>
     </div>
-
     <script>
         window.addEventListener('load', () => {
             document.body.classList.add('loaded');
@@ -334,20 +350,17 @@
             updateUTCTime();
             setInterval(updateUTCTime, 1000); // Update UTC time every second
         });
-
         function updateUTCTime() {
             const now = new Date();
             const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' };
             document.getElementById('utc-time').textContent = now.toLocaleString('en-US', options) + ' UTC';
         }
-
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.toggle('active');
             overlay.classList.toggle('hidden');
         }
-
         // Save Phone Number
         document.getElementById('save-phone-number').addEventListener('click', () => {
             const phoneNumber = document.getElementById('phone-number').value.trim();
@@ -356,7 +369,6 @@
                 return;
             }
             document.getElementById('phone-number-error').style.display = 'none';
-
             fetch('/settings', {
                 method: 'POST',
                 headers: {
@@ -391,7 +403,6 @@
                 }, 3000);
             });
         });
-
         // Save Sending Mode
         document.getElementById('save-sending-mode').addEventListener('click', () => {
             const selectedMode = document.querySelector('input[name="sending-mode"]:checked');
@@ -452,7 +463,6 @@
                     endTime = document.getElementById('dnd-end-time').value;
                 }
             }
-
             let body = `action=update_sending_mode&mode=${mode}&duration=${duration}`;
             if (duration === 'schedule') {
                 if (!startDate || !startTime || !endDate || !endTime) {
@@ -474,7 +484,6 @@
                     document.getElementById(id).style.display = 'none';
                 });
             }
-
             fetch('/settings', {
                 method: 'POST',
                 headers: {
@@ -506,7 +515,6 @@
                 }, 3000);
             });
         });
-
         // Handle Sending Mode and Schedule Options
         const sendingModes = document.getElementsByName('sending-mode');
         sendingModes.forEach(mode => {
@@ -531,22 +539,18 @@
                 }
             });
         });
-
         document.getElementById('schedule-high').addEventListener('change', () => {
             document.getElementById('high-schedule').classList.toggle('hidden', !document.getElementById('schedule-high').checked);
             if (!document.getElementById('schedule-high').checked) document.getElementById('high-time-error').style.display = 'none';
         });
-
         document.getElementById('schedule-all').addEventListener('change', () => {
             document.getElementById('all-schedule').classList.toggle('hidden', !document.getElementById('schedule-all').checked);
             if (!document.getElementById('schedule-all').checked) document.getElementById('all-time-error').style.display = 'none';
         });
-
         document.getElementById('schedule-dnd').addEventListener('change', () => {
             document.getElementById('dnd-schedule').classList.toggle('hidden', !document.getElementById('schedule-dnd').checked);
             if (!document.getElementById('schedule-dnd').checked) document.getElementById('dnd-time-error').style.display = 'none';
         });
-
         // Add Bubble Function
         function addBubble(inputId, listId, action) {
             const input = document.getElementById(inputId);
@@ -566,7 +570,6 @@
                 return;
             }
             document.getElementById(`${inputId}-error`).style.display = 'none';
-
             fetch('/settings', {
                 method: 'POST',
                 headers: {
@@ -604,7 +607,6 @@
                 }, 3000);
             });
         }
-
         // Remove Bubble Functions
         function removePriorityFrom(value) {
             fetch('/settings', {
@@ -641,7 +643,6 @@
                 }, 3000);
             });
         }
-
         function removePriorityKeyword(value) {
             fetch('/settings', {
                 method: 'POST',
@@ -677,7 +678,6 @@
                 }, 3000);
             });
         }
-
         function removeSpamIgnoreFrom(value) {
             fetch('/settings', {
                 method: 'POST',
@@ -713,7 +713,6 @@
                 }, 3000);
             });
         }
-
         function removeSpamKeyword(value) {
             fetch('/settings', {
                 method: 'POST',
@@ -749,7 +748,6 @@
                 }, 3000);
             });
         }
-
         // Handle Enter for adding
         document.getElementById('priority-from').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && document.activeElement === document.getElementById('priority-from')) {
@@ -757,28 +755,24 @@
                 addBubble('priority-from', 'priority-from-list', 'add_priority_from');
             }
         });
-
         document.getElementById('priority-keywords').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && document.activeElement === document.getElementById('priority-keywords')) {
                 e.preventDefault();
                 addBubble('priority-keywords', 'priority-keywords-list', 'add_priority_keyword');
             }
         });
-
         document.getElementById('spam-from').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && document.activeElement === document.getElementById('spam-from')) {
                 e.preventDefault();
                 addBubble('spam-from', 'spam-from-list', 'add_spam_ignore_from');
             }
         });
-
         document.getElementById('spam-keywords').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && document.activeElement === document.getElementById('spam-keywords')) {
                 e.preventDefault();
                 addBubble('spam-keywords', 'spam-keywords-list', 'add_spam_keyword');
             }
         });
-
         // Update Languages
         document.getElementById('receive-language').addEventListener('change', () => {
             fetch('/settings', {
@@ -815,7 +809,6 @@
                 }, 3000);
             });
         });
-
         document.getElementById('send-language').addEventListener('change', () => {
             fetch('/settings', {
                 method: 'POST',
@@ -851,7 +844,6 @@
                 }, 3000);
             });
         });
-
         // Cancel Upcoming Mode
         document.getElementById('cancel-upcoming')?.addEventListener('click', () => {
             fetch('/settings', {
