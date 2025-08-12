@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -136,6 +136,194 @@
                 var $filtered = $originalMessages.filter(function() {
                     var matchesSearch = $(this).data('sender').includes(search) || $(this).data('body').includes(search);
                     var matchesFilter = !filter || $(this).data('type') === filter;
+                    return matchesSearch && matchesFilter;
+                });
+
+                var sorted = $filtered.sort(function(a, b) {
+                    var timeA = new Date($(a).data('timestamp'));
+                    var timeB = new Date($(b).data('timestamp'));
+                    return sort === 'newest' ? timeB - timeA : timeA - timeB;
+                });
+
+                $('#messages-container').empty().append(sorted);
+
+                if (sorted.length === 0) {
+                    var noMessageText = (search === '' && filter === '') ? 'No high-priority messages.' : 'No matching high-priority messages.';
+                    $('#messages-container').html('<p class="text-xs text-zinc-400">' + noMessageText + '</p>');
+                }
+            }
+
+            $('#search-input').on('input', updateMessages);
+            $('#sort-select').on('change', updateMessages);
+            $('#filter-select').on('change', updateMessages);
+
+            $('#refresh-dashboard').on('click', function() {
+                $(this).find('svg').addClass('rotate');
+                setTimeout(() => {
+                    $(this).find('svg').removeClass('rotate');
+                    location.reload();
+                }, 500); // Match animation duration
+            });
+        });
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Comsierge | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .rotate {
+            animation: spin 0.5s linear;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="scroll-smooth antialiased selection:bg-cyan-400/20 selection:text-cyan-100 bg-neutral-950 text-zinc-100" style="font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'">
+    <!-- Background Accents (copied) -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+        <div class="absolute inset-0" style="
+          background:
+          radial-gradient(800px 400px at 10% 10%, rgba(34,211,238,0.14), transparent 60%),
+          radial-gradient(700px 380px at 90% 20%, rgba(217,70,239,0.12), transparent 60%),
+          radial-gradient(900px 600px at 50% 90%, rgba(34,211,238,0.08), transparent 60%);
+        "></div>
+        <div class="absolute inset-0 opacity-[0.035]" style="
+          background-image: linear-gradient(to right, #ffffff0f 1px, transparent 1px), linear-gradient(to bottom, #ffffff0f 1px, transparent 1px);
+          background-size: 48px 48px;
+        "></div>
+    </div>
+
+    <!-- Notification Banner -->
+    <div id="notification-banner" class="notification-banner" role="alert"></div>
+
+    <!-- Particle Background -->
+    <svg class="particles hidden md:block" aria-hidden="true">
+        <circle cx="5%" cy="10%" r="4" class="particle" style="animation-delay: 0s;" />
+        <circle cx="85%" cy="15%" r="3" class="particle particle-magenta" style="animation-delay: 1.5s;" />
+        <rect x="65%" y="60%" width="5" height="5" class="particle" style="animation-delay: 3s;" />
+        <circle cx="20%" cy="80%" r="5" class="particle particle-magenta" style="animation-delay: 4.5s;" />
+        <rect x="10%" y="50%" width="4" height="4" class="particle" style="animation-delay: 6s;" />
+    </svg>
+
+    <!-- Menu -->
+    {% include 'menu.html' %}
+
+    <!-- Header -->
+    {% block header_title %}Dashboard{% endblock %}
+    {% include 'header.html' %}
+
+    <!-- Main Content Wrapper -->
+    <div class="content-wrapper w-full">
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 max-w-7xl">
+            <section id="dashboard" class="content-section py-8 {% if active_section == 'dashboard' %}active{% endif %}">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">Dashboard</h2>
+                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">{{ phone_number if phone_number else 'No phone number selected' }}</p>
+                    </div>
+                    <button id="refresh-dashboard" class="text-white hover:text-neon-cyan transition-colors duration-200" title="Refresh Dashboard">
+                        <svg id="refresh-icon" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    <div class="card p-4 rounded-xl"><h3 class="text-base font-semibold text-white mb-1">Messages</h3><p class="text-xl font-bold text-neon-cyan">{{ unread_count }}</p><p class="text-xs text-zinc-400">New messages</p></div>
+                    <div class="card p-4 rounded-xl"><h3 class="text-base font-semibold text-white mb-1">Held</h3><p class="text-xl font-bold text-neon-cyan">{{ spam_count }}</p><p class="text-xs text-zinc-400">Pending review</p></div>
+                    <div class="card p-4 rounded-xl"><h3 class="text-base font-semibold text-white mb-1">Conditions</h3><p class="text-xl font-bold text-neon-cyan">{{ active_conditions }} active</p><p class="text-xs text-zinc-400">Forwarding conditions</p></div>
+                </div>
+                <div class="bg-[#101010] rounded-xl p-4 border border-zinc-800 animated-gradient-border">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                        <h3 class="text-base font-semibold text-white">High-Priority Messages</h3>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-64">
+                                <input type="text" id="search-input" placeholder="Search by sender or content..." class="w-full bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 pl-8 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Search high-priority messages" />
+                                <svg class="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <select id="sort-select" class="bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Sort high-priority messages">
+                                <option value="newest">Sort by Date (Newest)</option>
+                                <option value="oldest">Sort by Date (Oldest)</option>
+                            </select>
+                            <select id="filter-select" class="bg-zinc-900 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" aria-label="Filter high-priority messages by type">
+                                <option value="">Filter by Type (All)</option>
+                                <option value="emergency">Emergency</option>
+                                <option value="meeting">Meeting</option>
+                                <option value="family_meeting">Family Meeting</option>
+                                <option value="appointment">Appointment</option>
+                                <option value="task">Task</option>
+                                <option value="deadline">Deadline</option>
+                                <option value="bank">Bank</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="messages-container" class="space-y-3">
+                        {% if high_priority_messages %}
+                            {% for msg in high_priority_messages %}
+                                <div class="message-item high" data-timestamp="{{ msg.timestamp.isoformat() }}" data-type="{{ msg.high_type|default('other') }}" data-sender="{{ (contact.alias if contact else msg.from_number) | lower }}" data-body="{{ msg.body | lower }}">
+                                    <div class="message-content">
+                                        {% set contact = contacts | selectattr('phone_number', 'equalto', msg.from_number) | first %}
+                                        <p class="font-semibold text-white text-sm">{{ contact.alias if contact else msg.from_number }}</p>
+                                        <p class="text-xs">{{ msg.body }}</p>
+                                        <p class="text-xs text-zinc-500 mt-1">{{ msg.timestamp.strftime('%b %d, %Y, %I:%M %p') }}</p>
+                                    </div>
+                                    <div class="priority-badge priority-high">HIGH PRIORITY - {{ msg.high_type|default('Other')|capitalize }}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-xs text-zinc-400">No high-priority messages.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Inline JavaScript for Sidebar Toggle -->
+    <script>
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            console.log('Added body.loaded class');
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+    </script>
+
+    <!-- JavaScript for Dynamic Filtering, Sorting, Searching, and Refresh Icon -->
+    <script>
+        $(document).ready(function() {
+            var $originalMessages = $('.message-item').clone(true);
+            $('#messages-container').empty();
+            updateMessages();
+
+            function updateMessages() {
+                var search = $('#search-input').val() ? $('#search-input').val().toLowerCase() : '';
+                var sort = $('#sort-select').val();
+                var filter = $('#filter-select').val();
+
+                var $filtered = $originalMessages.filter(function() {
+                    var sender = ($(this).data('sender') || '').toString();
+                    var body = ($(this).data('body') || '').toString();
+                    var type = ($(this).data('type') || '').toString();
+                    var matchesSearch = sender.includes(search) || body.includes(search);
+                    var matchesFilter = !filter || type === filter;
                     return matchesSearch && matchesFilter;
                 });
 
