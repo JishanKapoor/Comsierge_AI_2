@@ -25,15 +25,37 @@
         }
     </style>
 </head>
-<body class="antialiased bg-black text-white min-h-screen">
+<body class="antialiased bg-neutral-950 text-zinc-100" style="font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'">
+    <!-- Background Accents -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+      <div class="absolute inset-0" style="
+        background:
+        radial-gradient(800px 400px at 10% 10%, rgba(34,211,238,0.14), transparent 60%),
+        radial-gradient(700px 380px at 90% 20%, rgba(217,70,239,0.12), transparent 60%),
+        radial-gradient(900px 600px at 50% 90%, rgba(34,211,238,0.08), transparent 60%);
+      "></div>
+      <div class="absolute inset-0 opacity-[0.035]" style="
+        background-image: linear-gradient(to right, #ffffff0f 1px, transparent 1px), linear-gradient(to bottom, #ffffff0f 1px, transparent 1px);
+        background-size: 48px 48px;
+      "></div>
+    </div>
+
     <!-- Notification Banner -->
-    <div id="notification-banner" class="notification-banner bg-neon-cyan text-black py-2 px-4 text-sm font-semibold text-center" role="alert"></div>
+    <div id="notification-banner" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] sm:w-[520px] rounded-lg border border-white/10 bg-neutral-900/80 backdrop-blur px-4 py-2 text-sm text-zinc-200 shadow hidden" role="alert"></div>
+
+    <!-- Particle Background -->
+    <svg class="hidden md:block pointer-events-none fixed inset-0 -z-10 opacity-30" aria-hidden="true">
+      <circle cx="5%" cy="10%" r="4" style="fill: rgba(34,211,238,0.35);"></circle>
+      <circle cx="85%" cy="15%" r="3" style="fill: rgba(217,70,239,0.35);"></circle>
+      <rect x="65%" y="60%" width="5" height="5" style="fill: rgba(255,255,255,0.25);"></rect>
+      <circle cx="20%" cy="80%" r="5" style="fill: rgba(217,70,239,0.35);"></circle>
+      <rect x="10%" y="50%" width="4" height="4" style="fill: rgba(255,255,255,0.25);"></rect>
+    </svg>
 
     <!-- Menu -->
     {% include 'menu.html' %}
     {% set header_title = 'SMS Scheduling' %}
     {% include 'header.html' %}
-
     <!-- Main Content -->
     <div class="content-wrapper w-full">
         <main class="px-4 pt-16 pb-12 max-w-full">
@@ -41,7 +63,6 @@
                 <h2 class="text-2xl font-bold mb-1">Schedule or Send SMS</h2>
                 <p class="text-sm text-zinc-400 mb-2">{{ phone_number if phone_number else 'No phone number selected' }}</p>
                 <p class="text-sm text-yellow-400 mb-6">Note: All scheduled times must be in UTC. Current UTC time: <span id="utc-time"></span></p>
-
                 <div class="bg-[#101010] rounded-xl p-6 border border-zinc-800 w-full">
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
@@ -52,7 +73,6 @@
                             </div>
                         {% endif %}
                     {% endwith %}
-
                     <!-- SMS Form -->
                     <form method="POST" action="{{ url_for('schedule_message_route') }}" class="flex flex-col gap-4 mb-8 w-full" onsubmit="return normalizeForm()">
                         <div class="w-full">
@@ -73,12 +93,10 @@
                                 {% endfor %}
                             </select>
                         </div>
-
                         <div class="w-full">
                             <label for="message_content" class="block text-xs font-medium text-zinc-400 mb-2">Message Content</label>
                             <textarea id="message_content" name="message_content" maxlength="160" placeholder="Max 160 characters" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" required></textarea>
                         </div>
-
                         <div class="w-full">
                             <label for="send_type" class="block text-xs font-medium text-zinc-400 mb-2">Send Type</label>
                             <select id="send_type" name="send_type" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="toggleScheduleFields()">
@@ -86,7 +104,6 @@
                                 <option value="scheduled">Schedule Message</option>
                             </select>
                         </div>
-
                         <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 hidden" id="schedule_fields">
                             <div>
                                 <label for="schedule_date" class="block text-xs font-medium text-zinc-400 mb-2">Schedule Date (UTC)</label>
@@ -99,12 +116,10 @@
                                 <p class="text-xs text-zinc-500 mt-1">Enter time in UTC (24-hour format, e.g., 16:15 for 4:15 PM UTC)</p>
                             </div>
                         </div>
-
                         <div class="w-full text-right">
                             <button type="submit" class="bg-white text-black font-semibold px-5 py-2 rounded-lg text-xs hover:bg-zinc-200 transition-colors duration-200">Send</button>
                         </div>
                     </form>
-
                     <!-- Upcoming Scheduled SMS Table -->
                     <div class="mt-8">
                         <h3 class="text-base font-semibold mb-4">Upcoming Scheduled SMS</h3>
@@ -147,7 +162,6 @@
                             </table>
                         </div>
                     </div>
-
                     <!-- Past Messages Table -->
                     <div class="mt-8">
                         <h3 class="text-base font-semibold mb-4">Past Messages (Last 24 Hours)</h3>
@@ -198,7 +212,6 @@
             </section>
         </main>
     </div>
-
     <!-- JavaScript -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
@@ -209,19 +222,16 @@
             setupSocketIO();
             prefillFormFromURL();
         });
-
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.toggle('active');
             overlay.classList.toggle('hidden');
         }
-
         function normalizePhoneNumber(value) {
             if (!value) return '';
             return value.startsWith('+') ? value : '+1' + value.replace(/^1/, '');
         }
-
         function normalizeForm() {
             const toNumberInput = document.getElementById('to_number');
             toNumberInput.value = normalizePhoneNumber(toNumberInput.value);
@@ -236,7 +246,7 @@
                 // Combine date and time into a UTC Date object
                 const scheduleDateTime = new Date(`${scheduleDate}T${scheduleTime}:00Z`);
                 const now = new Date();
-                const minTime = new Date(now.getTime() + 5 * 60 * 1000); 
+                const minTime = new Date(now.getTime() + 5 * 60 * 1000);
                 if (scheduleDateTime <= minTime) {
                     alert('Schedule time must be at least 5 minutes in the future (UTC).');
                     return false;
@@ -244,7 +254,6 @@
             }
             return true;
         }
-
         function toggleScheduleFields() {
             const sendType = document.getElementById('send_type').value;
             const scheduleFields = document.getElementById('schedule_fields');
@@ -262,7 +271,6 @@
                 timeInput.disabled = false;
             }
         }
-
         function updateUTCTime() {
             const utcTimeElement = document.getElementById('utc-time');
             const now = new Date();
@@ -270,7 +278,6 @@
             utcTimeElement.textContent = utcString;
             setTimeout(updateUTCTime, 1000);
         }
-
         function prefillFormFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const toNumber = urlParams.get('to_number');
@@ -287,7 +294,6 @@
                 });
             }
         }
-
         function setupSocketIO() {
             const socket = io();
             const selectedPhoneId = "{{ session.selected_phone_id }}";
@@ -358,7 +364,6 @@
                 }
             });
         }
-
         document.getElementById('send_type').addEventListener('change', toggleScheduleFields);
     </script>
 </body>
