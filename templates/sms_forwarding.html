@@ -78,6 +78,7 @@
                         <div class="w-full">
                             <label for="from_number" class="block text-xs font-medium text-zinc-400 mb-2">From Number</label>
                             <input type="tel" id="from_number" name="from_number" placeholder="Enter phone number or select contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan">
+                            <p class="text-xs text-zinc-500 mt-1">Leave blank to forward all messages</p>
                             <select id="from_contact" name="from_contact" class="w-full bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan" onchange="document.getElementById('from_number').value = this.value;">
                                 <option value="" disabled selected>Select Contact</option>
                                 {% for contact in contacts %}
@@ -179,27 +180,25 @@
                                 <tbody id="upcoming-rules-body">
                                     {% if upcoming_rules %}
                                         {% for rule in upcoming_rules %}
-                                            {% if rule.from_number or rule.forward_to != personal_phone %}
-                                                <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">
-                                                    <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>
-                                                    <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>
-                                                    <td class="px-4 py-3 text-xs">
-                                                        {% if rule.priority_mode == 'high' and rule.high_filters %}
-                                                            High ({{ rule.high_filters | join(', ') | title }})
-                                                        {% else %}
-                                                            {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>
-                                                    <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>
-                                                    <td class="px-4 py-3 text-xs rule-status text-yellow-400">{{ rule.status | capitalize }}</td>
-                                                    <td class="px-4 py-3 text-xs rule-actions">
-                                                        <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">
-                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            {% endif %}
+                                            <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">
+                                                <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>
+                                                <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>
+                                                <td class="px-4 py-3 text-xs">
+                                                    {% if rule.priority_mode == 'high' and rule.high_filters %}
+                                                        High ({{ rule.high_filters | join(', ') | title }})
+                                                    {% else %}
+                                                        {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>
+                                                <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>
+                                                <td class="px-4 py-3 text-xs rule-status text-yellow-400">{{ rule.status | capitalize }}</td>
+                                                <td class="px-4 py-3 text-xs rule-actions">
+                                                    <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">
+                                                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
@@ -229,27 +228,25 @@
                                 <tbody id="active-rules-body">
                                     {% if active_rules %}
                                         {% for rule in active_rules %}
-                                            {% if rule.from_number or rule.forward_to != personal_phone %}
-                                                <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">
-                                                    <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>
-                                                    <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>
-                                                    <td class="px-4 py-3 text-xs">
-                                                        {% if rule.priority_mode == 'high' and rule.high_filters %}
-                                                            High ({{ rule.high_filters | join(', ') | title }})
-                                                        {% else %}
-                                                            {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>
-                                                    <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>
-                                                    <td class="px-4 py-3 text-xs rule-status text-green-400">{{ rule.status | capitalize }}</td>
-                                                    <td class="px-4 py-3 text-xs rule-actions">
-                                                        <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">
-                                                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            {% endif %}
+                                            <tr class="border-b border-zinc-800 last:border-none" data-rule-id="{{ rule._id }}">
+                                                <td class="px-4 py-3 text-xs">{{ rule.from_number or 'All' }}</td>
+                                                <td class="px-4 py-3 text-xs">{{ rule.forward_to }}</td>
+                                                <td class="px-4 py-3 text-xs">
+                                                    {% if rule.priority_mode == 'high' and rule.high_filters %}
+                                                        High ({{ rule.high_filters | join(', ') | title }})
+                                                    {% else %}
+                                                        {{ rule.priority_mode.replace('_', ' ').title() if rule.priority_mode else 'All' }}
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-4 py-3 text-xs rule-start">{{ rule.start_time.strftime('%b %d, %Y, %I:%M %p') if rule.start_time else 'Now' }}</td>
+                                                <td class="px-4 py-3 text-xs rule-end">{{ rule.end_time.strftime('%b %d, %Y, %I:%M %p') if rule.end_time else 'Forever' }}</td>
+                                                <td class="px-4 py-3 text-xs rule-status text-green-400">{{ rule.status | capitalize }}</td>
+                                                <td class="px-4 py-3 text-xs rule-actions">
+                                                    <form method="POST" action="{{ url_for('stop_forwarding_rule_route', rule_id=rule._id) }}" onsubmit="return confirm('Stop this forwarding rule?')">
+                                                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition">Stop</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
